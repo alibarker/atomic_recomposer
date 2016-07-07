@@ -37,7 +37,7 @@ MainContentComponent::MainContentComponent()
     wivigram->setBounds(1, 60, getWidth() - 1, getHeight() - 61);
     
     numAtoms = new Label();
-    numAtoms->setBounds(160, 1, 100, 20);
+    numAtoms->setBounds(160, 1, 800, 20);
     addAndMakeVisible(numAtoms);
     
     
@@ -120,7 +120,7 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     
     
     /* Load the signal */
-    sig = MP_Signal_c::init( "/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav" );
+    sig = MP_Signal_c::init( "/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/drums.wav" );
 	if ( sig == NULL )
     {
 		exit( 0 );

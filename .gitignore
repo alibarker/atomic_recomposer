@@ -3,3 +3,4 @@ project.xcworkspace/
 xcuserdata/
 /Builds/MacOSX/build
 .DS_Store
+*.wav

@@ -48,6 +48,8 @@ public:
     }
     
     int numAtomsCurrentlyPlaying;
+    int numAtomsCurrentlyTooQuiet;
+    int numAtomsCurrentlyNotSupported;
 
     
 private:
@@ -60,6 +62,7 @@ private:
         MP_Atom_c* atom;
         float currentPhase;
         float phaseInc;
+        double* window;
     };
     
     OwnedArray<ScrubAtom> scrubAtoms;

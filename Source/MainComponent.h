@@ -38,7 +38,10 @@ public:
     
     void timerCallback() override
     {
-        numAtoms->setText(String(atomicSource->numAtomsCurrentlyPlaying), dontSendNotification);
+        numAtoms->setText("Atoms Playing: " + String(atomicSource->numAtomsCurrentlyPlaying)
+                          + " , Atoms too quiet: " +  String(atomicSource->numAtomsCurrentlyTooQuiet)
+                          + " , Atoms not supported: " + String(atomicSource->numAtomsCurrentlyNotSupported)
+                          , dontSendNotification);
     }
     
     virtual void prepareToPlay (int samplesPerBlockExpected,
