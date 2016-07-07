@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="pFZpoF" name="mpdgui" projectType="guiapp" version="1.0.0"
+              bundleIdentifier="com.yourcompany.mpdgui" jucerVersion="4.2.1"
+              includeBinaryInAppConfig="1">
+  <MAINGROUP id="UYTtgu" name="mpdgui">
+    <GROUP id="{901DBBEA-8050-86C2-B10D-2BC5C2B9D198}" name="Source">
+      <FILE id="seh9no" name="WavetableSinOscillator.cpp" compile="1" resource="0"
+            file="Source/WavetableSinOscillator.cpp"/>
+      <FILE id="UmTyQa" name="WavetableSinOscillator.h" compile="0" resource="0"
+            file="Source/WavetableSinOscillator.h"/>
+      <FILE id="eopITd" name="AtomicAudioSource.cpp" compile="1" resource="0"
+            file="Source/AtomicAudioSource.cpp"/>
+      <FILE id="OuFGum" name="AtomicAudioSource.h" compile="0" resource="0"
+            file="Source/AtomicAudioSource.h"/>
+      <FILE id="f0gwjI" name="WivigramComponent.h" compile="0" resource="0"
+            file="Source/WivigramComponent.h"/>
+      <FILE id="JHczlP" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="ghSi9F" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="VFsETf" name="mptk.h" compile="0" resource="0" file="../../../../../SDKs/mptk/src/libmptk/mptk.h"/>
+      <FILE id="JJmTTo" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
+  </MODULES>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-iquote/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/libmptk&#10;-iquote/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/utils/libdsp_windows&#10;-iquote/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/utils/libtinyxml&#10;-iquote/Users/alibarker89/SDKs/MPTK-Source-0.7.0"
+               extraLinkerFlags="-l mptk " externalLibraries="">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
+                       isDebug="1" optimisation="3" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
+                       libraryPath="/usr/local/lib&#10;"/>
+        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
+                       isDebug="0" optimisation="2" targetName="mpdgui"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../SDKs/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../SDKs/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
