@@ -14,6 +14,7 @@
 #include "mptk.h"
 #include "gabor_atom_plugin.h"
 #include "AtomicAudioSource.h"
+#include "AtomicAudioEngine.h"
 
 
 //#include "harmonic_atom_plugin.h"
@@ -25,7 +26,7 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainContentComponent : public ButtonListener, public AudioAppComponent, public Timer
+class MainContentComponent : public ButtonListener, public Component, public ChangeListener, public Timer
 {
 public:
     //==============================================================================
@@ -35,41 +36,44 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     void buttonClicked (Button* buttonThatWasClicked) override;
+    void changeListenerCallback(ChangeBroadcaster* source) override
+    {
+        wivigram->setImage(audioEngine->getWivigramImage());
+        wivigram->repaint();
+    }
     
     void timerCallback() override
     {
-        numAtoms->setText("Atoms Playing: " + String(atomicSource->numAtomsCurrentlyPlaying)
-                          + " , Atoms too quiet: " +  String(atomicSource->numAtomsCurrentlyTooQuiet)
-                          + " , Atoms not supported: " + String(atomicSource->numAtomsCurrentlyNotSupported)
-                          , dontSendNotification);
-    }
-    
-    virtual void prepareToPlay (int samplesPerBlockExpected,
-                                double sampleRate) override
-    {
-        transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+        float newPos = audioEngine->getTransportPosition();
+        cursor->scrubPos = newPos * wivigram->getWidth();
+        cursor->repaint();
         
     }
-   
-    virtual void releaseResources() override {}
-
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
-    {
-        transportSource.getNextAudioBlock(bufferToFill);
-    }
     
+    void updateWivigram();
     
+    void mouseDrag(const MouseEvent& event) override;
 
 private:
     ScopedPointer<TextButton> button_decomp;
     ScopedPointer<TextEditor> text_editor_num_iterations;
     ScopedPointer<Label> label_num_iterations;
-    ScopedPointer<WivigramComponent> wivigram;
+    ScopedPointer<ImageComponent> wivigram;
     ScopedPointer<Label> numAtoms;
-
-    ScopedPointer<AtomicAudioSource> atomicSource;
-    AudioTransportSource transportSource;
     
+    class Cursor : public Component
+    {
+    public:
+        void paint(Graphics& g) {g.drawLine(scrubPos, 0, scrubPos, getHeight(), 3);}
+        int scrubPos;
+
+    };
+    
+    ScopedPointer<Cursor> cursor;
+
+    
+
+    ScopedPointer<AtomicAudioEngine> audioEngine;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

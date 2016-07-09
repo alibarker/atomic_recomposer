@@ -28,7 +28,7 @@ public:
     int64 getNextReadPosition() const override {return nextReadPosition;}
     
     /** Returns the total length of the stream (in samples). */
-    int64 getTotalLength() const override {return book->numSamples;}
+    int64 getTotalLength() const override;
     
     /** Returns true if this source is actually playing in a loop. */
     bool isLooping() const override {return false;}
@@ -38,14 +38,11 @@ public:
 
     virtual void releaseResources() override {}
 
+    void setBook(MP_Book_c* newBook);
+    
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
     ScopedPointer<WavetableSinOscillator> osc;
-
-    void setBook(MP_Book_c* newBook)
-    {
-        book = newBook;
-    }
     
     int numAtomsCurrentlyPlaying;
     int numAtomsCurrentlyTooQuiet;

@@ -28,10 +28,7 @@ public:
         for (int i = 0; i < wavetableSize; ++i)
         {
             float phase = 2 * M_PI * i / (float) wavetableSize;
-            
             wavetable.setSample(0, i, sin(phase));
-            
-            DBG("Sample " << i << ": " << wavetable.getSample(0, i));
         }
         
         interpolation = linearInterpolation;
@@ -42,10 +39,7 @@ public:
     
     float getSample(float phase)
     {
-//        jassert(phase >= 0 && phase < 2.0 * M_PI);
-        
         int intPhase = floor(phase * size / (2 * M_PI));
-        
         float output;
         
         switch (interpolation) {
@@ -75,7 +69,6 @@ public:
 private:
     AudioSampleBuffer wavetable;
     int size;
-    
     float phaseInc;
     
     enum InterpolationType
@@ -85,9 +78,6 @@ private:
     };
     
     InterpolationType interpolation;
-    
-    
-    
 };
 
 

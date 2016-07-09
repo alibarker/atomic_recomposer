@@ -15,6 +15,15 @@ AtomicAudioSource::AtomicAudioSource()
     osc = new WavetableSinOscillator(4096);
 }
 
+int64 AtomicAudioSource::getTotalLength() const
+{
+    if (book != nullptr)
+        return book->numSamples;
+    else
+        return 0;
+}
+
+
 void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
     
@@ -123,44 +132,56 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
                             double sampleRate)
 {
-    tempBuffer = new MP_Real_t[16384];
-    
-    
-    
-    isCurrentlyScrubbing = true;
-    
-    prevReadPosition = -1;
-    nextReadPosition = 0;
-    
-    for (int i = 0; i < book->numAtoms; ++i)
-    {
+}
+
+void AtomicAudioSource::setBook(MP_Book_c* newBook)
+{
+    book = newBook;
+
+    if (book != nullptr) {
+        tempBuffer = new MP_Real_t[16384];
         
-        MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
+        isCurrentlyScrubbing = true;
         
-        unsigned char windowType = gabor_atom->windowType;
-        double windowOption = gabor_atom->windowOption;
-        int length = gabor_atom->support[0].len;
-        double* window = new double[length];
+        prevReadPosition = -1;
+        nextReadPosition = 0;
         
-        make_window(window, length, windowType, windowOption);
-        
-        
-        
-        float atomPhaseInc = 2 * M_PI * gabor_atom->freq;
-        float atomInitialPhase = gabor_atom->phase[0];
-        
-        if (atomInitialPhase < 0) {
-            atomInitialPhase += 2 * M_PI;
+        for (int i = 0; i < book->numAtoms; ++i)
+        {
+            
+            MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
+            
+            unsigned char windowType = gabor_atom->windowType;
+            double windowOption = gabor_atom->windowOption;
+            int length = gabor_atom->support[0].len;
+            double* window = new double[length];
+            
+            make_window(window, length, windowType, windowOption);
+            
+            
+            
+            float atomPhaseInc = 2 * M_PI * gabor_atom->freq;
+            float atomInitialPhase = gabor_atom->phase[0];
+            
+            if (atomInitialPhase < 0) {
+                atomInitialPhase += 2 * M_PI;
+            }
+            
+            ScrubAtom* newAtom = new ScrubAtom;
+            newAtom->atom = gabor_atom;
+            newAtom->currentPhase = atomInitialPhase;
+            newAtom->phaseInc = atomPhaseInc;
+            newAtom->window = window;
+            
+            scrubAtoms.add(newAtom);
         }
         
-        ScrubAtom* newAtom = new ScrubAtom;
-        newAtom->atom = gabor_atom;
-        newAtom->currentPhase = atomInitialPhase;
-        newAtom->phaseInc = atomPhaseInc;
-        newAtom->window = window;
-        
-        scrubAtoms.add(newAtom);
+
     }
+    
+    
+    
+    
     
     
 }
