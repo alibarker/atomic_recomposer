@@ -39,7 +39,9 @@ public:
     
     float getSample(float phase)
     {
-        int intPhase = floor(phase * size / (2 * M_PI));
+        float samplePos = phase * size / (2 * M_PI);
+        
+        int intPhase = floor(samplePos);
         float output;
         
         switch (interpolation) {
@@ -52,10 +54,11 @@ public:
                 int intPhasePlusOne = intPhase + 1;
                 
                 if (intPhasePlusOne == size)
+                {
                     intPhasePlusOne = 0;
+                }
                 
-                float fractPhase = phase - intPhase;
-                
+                float fractPhase = samplePos - intPhase;
                 output = (1 - fractPhase) * wavetable.getSample(0, intPhase)
                 + fractPhase * wavetable.getSample(0, intPhasePlusOne);
                 break;

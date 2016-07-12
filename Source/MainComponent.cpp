@@ -18,11 +18,52 @@ MainContentComponent::MainContentComponent()
     int wiviWidth = getWidth() - 1;
     int wiviHeight = getHeight() - 61;
 
+    File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
+    File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
+
     
     audioEngine = new AtomicAudioEngine(wiviWidth, wiviHeight);
     audioEngine->setAudioChannels (0, 2);
     audioEngine->addChangeListener(this);
     
+    textEditorDictionary = new TextEditor("Dictionary");
+    textEditorDictionary->setBounds(649, 1, 300, 25);
+    addAndMakeVisible(textEditorDictionary);
+    textEditorDictionary->setText(defaultDict.getFullPathName());
+    
+    buttonSelectDictionary = new TextButton("SelectDict");
+    addAndMakeVisible(buttonSelectDictionary);
+    buttonSelectDictionary->setBounds(949, 1, 50, 25);
+    buttonSelectDictionary->setButtonText("...");
+    buttonSelectDictionary->addListener(this);
+
+    labelSelectDictionary = new Label("Dictionary Label", "Dictionary:");
+    addAndMakeVisible(labelSelectDictionary);
+    labelSelectDictionary->setBounds(574, 1, 75, 25);
+    
+    textEditorSignal = new TextEditor("Signal");
+    textEditorSignal->setBounds(649, 27, 300, 25);
+    addAndMakeVisible(textEditorSignal);
+    textEditorSignal->setText(defaultSignal.getFullPathName());
+
+    buttonSelectSignal = new TextButton("SelectSignal");
+    addAndMakeVisible(buttonSelectSignal);
+    buttonSelectSignal->setBounds(949, 26, 50, 25);
+    buttonSelectSignal->setButtonText("...");
+    buttonSelectSignal->addListener(this);
+
+    labelSelectSignal = new Label("Signal Label", "Signal:");
+    addAndMakeVisible(labelSelectSignal);
+    labelSelectSignal->setBounds(600, 26, 49, 25);
+    
+    sliderBleed = new Slider("Bleed Amount");
+    sliderBleed->setBounds(160, 35, 340, 20);
+    addAndMakeVisible(sliderBleed);
+    sliderBleed->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+    sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, 50, 20);
+    sliderBleed->addListener(this);
+    sliderBleed->setRange(0.25, 4);
+    sliderBleed->setValue(audioEngine->getBleedValue());
 
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
@@ -43,15 +84,39 @@ MainContentComponent::MainContentComponent()
     wivigram = new ImageComponent("Wivigram");
     addAndMakeVisible(wivigram);
     wivigram->setBounds(1, 60, wiviWidth, wiviHeight);
+    
+    // TODO: Does this line need to wivigram->...
     addMouseListener(this, true);
 
     cursor = new Cursor();
     addAndMakeVisible(cursor);
     cursor->setBounds(wivigram->getBounds());
                                  
-    numAtoms = new Label();
-    numAtoms->setBounds(160, 1, 800, 20);
-    addAndMakeVisible(numAtoms);
+//    numAtoms = new Label();
+//    numAtoms->setBounds(160, 1, 800, 20);
+//    addAndMakeVisible(numAtoms);
+//    
+    statusLabel = new Label();
+    statusLabel->setBounds(160, 1, 340, 20);
+    addAndMakeVisible(statusLabel);
+    
+    /* Start/Stop Buttons */
+    
+    buttonStart = new TextButton("Start");
+    buttonStart->setBounds(160, 1, 100, 20);
+    addAndMakeVisible(buttonStart);
+    buttonStart->addListener(this);
+
+    buttonStop = new TextButton("Stop");
+    buttonStop->setBounds(261, 1, 100, 20);
+    addAndMakeVisible(buttonStop);
+    buttonStop->addListener(this);
+
+    buttonScrub = new TextButton("Scrub");
+    buttonScrub->setBounds(362, 1, 100, 20);
+    addAndMakeVisible(buttonScrub);
+    buttonScrub->addListener(this);
+    buttonScrub->setClickingTogglesState(true);
     
     startTimerHz(60);
     
@@ -69,8 +134,11 @@ MainContentComponent::~MainContentComponent()
 
 void MainContentComponent::mouseDrag(const juce::MouseEvent &event)
 {
-    float scrubPos = (float) event.x / (float) getWidth();
-    audioEngine->setTransportPosition(scrubPos);
+    if (event.originalComponent == cursor) {
+        float scrubPos = (float) event.x / (float) getWidth();
+        audioEngine->setTransportPosition(scrubPos);
+
+    }
 }
 
 
@@ -110,10 +178,46 @@ float estimateAnalyticIP(MP_Atom_c* atom1, MP_Atom_c* atom2)
 void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
 {
     if (buttonThatWasClicked == button_decomp) {
-        audioEngine->triggerDecomposition(File("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml"),
-                                        File("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav"),
+        audioEngine->triggerDecomposition(File(textEditorDictionary->getText()),
+                                        File(textEditorSignal->getText()),
                                         text_editor_num_iterations->getText().getIntValue());
     }
+    else if (buttonThatWasClicked == buttonSelectDictionary)
+    {
+        
+        FileChooser chooser ("Select a MPTK Dictionary to use...",
+                             File(textEditorDictionary->getText()),
+                             "*.xml");
     
-
+        if (chooser.browseForFileToOpen())
+        {
+            File file(chooser.getResult());
+            textEditorDictionary->setText(file.getFullPathName());
+        }
+    }
+    else if (buttonThatWasClicked == buttonSelectSignal)
+    {
+        
+        FileChooser chooser ("Select a signal to use...",
+                             File(textEditorSignal->getText()),
+                             "*.wav");
+        
+        if (chooser.browseForFileToOpen())
+        {
+            File file(chooser.getResult());
+            textEditorSignal->setText(file.getFullPathName());
+        }
+    }
+    else if (buttonThatWasClicked == buttonStart)
+    {
+        audioEngine->startPlaying();
+    }
+    else if (buttonThatWasClicked == buttonStop)
+    {
+        audioEngine->stopPlaying();
+    }
+    else if (buttonThatWasClicked == buttonScrub)
+    {
+        audioEngine->setScrubbing(buttonThatWasClicked->getToggleState());
+    }
 }

@@ -12,7 +12,7 @@
 #define ATOMICAUDIOENGINE_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "AtomicAudioSource.h"
+#include "mptk.h"
 
 class Wivigram : public ChangeBroadcaster
 {
@@ -33,30 +33,7 @@ public:
     int getHeight() { return size.getHeight(); }
     int getWidth() { return size.getWidth(); }
     
-    void updateWivigram(MP_TF_Map_c* map)
-    {
-        
-        const int width = getWidth();
-        const int height = getHeight();
-        
-        MP_Tfmap_t* column;
-        MP_Real_t val;
-        
-        for (int i = 0; i < width; i++ )
-        {
-            column = map->channel[0] + i * map->numRows; /* Seek the column */
-            
-            for (int j = 0; j < height; j++ )
-            {
-                val = (MP_Real_t) column[j];
-                image->setPixelAt(i, height - j, Colour::fromHSV (1.0f, 0.0f, 1 - val, 1.0f));
-            }
-        }
-        
-        sendChangeMessage();
-        
-    }
-    
+
     ScopedPointer<Image> image;
     
     
@@ -65,25 +42,34 @@ private:
     
 };
 
+class AtomicAudioSource;
 
-class AtomicAudioEngine : public AudioAppComponent, public ChangeBroadcaster, public Thread, public Timer {
+class AtomicAudioEngine :   public AudioAppComponent,
+                            public ChangeBroadcaster,
+                            public Thread,
+                            public Timer
+{
 public:
   
     AtomicAudioEngine(int wivigramWidth, int wivigramHeight);
-    ~AtomicAudioEngine() {}
+    ~AtomicAudioEngine() {stopThread(-1);}
     
     void timerCallback() override
     {
-        if (isReadyToPlay)
+        if (bookLock.tryEnterRead())
         {
             updateWivigram();
-            transportSource.start();
             stopTimer();
+            bookLock.exitRead();
         }
 
     }
- 
     
+    void startPlaying() { transportSource.start(); }
+    void stopPlaying() { transportSource.stop(); }
+    void setScrubbing(bool status);
+    
+
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override
     {
@@ -93,9 +79,17 @@ public:
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
     {
-        transportSource.getNextAudioBlock(bufferToFill);
+        if (transportSource.isPlaying())
+        {
+            ScopedReadLock srl (bookLock);
+            transportSource.getNextAudioBlock(bufferToFill);
+            
+        }
     }
     
+    float getBleedValue() { return bleedValue; }
+    void setBleedValue(float value) { bleedValue = value;}
+
     virtual void releaseResources() override {}
     AudioTransportSource transportSource;
     
@@ -103,6 +97,7 @@ public:
     
     
     float getTransportPosition();
+    
 
     
     void resizeWivigram(int width, int height)
@@ -113,27 +108,59 @@ public:
     
     Image getWivigramImage()
     {
+        ScopedReadLock srl(bookLock);
         return *wivigram->image;
     }
     
+    void setStatus(String val);
+    String getStatus()
+    {
+        ScopedReadLock srl(statusLock);
+        return status;
+    }
     
-    void startDecomposition();
     void run() override;
     void triggerDecomposition(File dictionary, File signal, int numIterations);
 
+    void prepareBook();
+  
+    struct ScrubAtom {
+        MP_Atom_c* atom;
+        float currentPhase;
+        float phaseInc;
+        double* window;
+        MP_Support_t originalSupport;
+    };
+    
+    OwnedArray<ScrubAtom> scrubAtoms;
+    ScopedPointer<MP_Book_c> book;
+    void updateWivigram();
+    ReadWriteLock bookLock;
+
+    ScopedPointer<MP_TF_Map_c> map;
+
+    
 private:
     
+    void decomposition();
+    ScopedPointer<MP_Real_t> tempBuffer;
+
+    bool isScrubbing = false;
     File dictionary;
     File signal;
     int numIterations;
     
     ScopedPointer<Wivigram> wivigram;
-    ScopedPointer<MP_Book_c> book;
     
-    void updateWivigram();
     
-    bool isReadyToPlay;
+    bool startDecomposition = false;
     
+    String status;
+    ReadWriteLock statusLock;
+    
+    float bleedValue;
+    
+    ScopedPointer<AtomicAudioSource> atomicSource;
     
 };
 

@@ -8,19 +8,31 @@
   ==============================================================================
 */
 
+#include "AtomicAudioEngine.h"
 #include "AtomicAudioSource.h"
 
-AtomicAudioSource::AtomicAudioSource()
+AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
 {
     osc = new WavetableSinOscillator(4096);
+    isCurrentlyScrubbing = false;
+    isCurrentlyRunning = false;
+    
+    prevReadPosition = -1;
+    nextReadPosition = 0;
+    
 }
 
 int64 AtomicAudioSource::getTotalLength() const
 {
-    if (book != nullptr)
-        return book->numSamples;
+    if (engine->book != nullptr)
+        return engine->book->numSamples;
     else
         return 0;
+}
+
+void AtomicAudioSource::setLooping(bool shouldLoop)
+{
+    isCurrentlyScrubbing = shouldLoop;
 }
 
 
@@ -31,57 +43,63 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
     bufferToFill.buffer->clear();
     
-    int bufferStart = nextReadPosition;
-    int bufferEnd = nextReadPosition + numSamples;
+//    int bufferStart = nextReadPosition;
+//    int bufferEnd = nextReadPosition + numSamples;
     
-    
-    if (!isCurrentlyScrubbing)
+    if (currentBleedValue != engine->getBleedValue())
     {
-        for (int i = 0; i < scrubAtoms.size(); ++i)
-        {
-            MP_Atom_c* atom = scrubAtoms[i]->atom;
-            MP_Support_t support = atom->support[0];
-            
-            
-            
-            int atomStart = support.pos;
-            int atomEnd = atomStart + support.len;
-            
-            if ( !(atomEnd < bufferStart || atomStart >= bufferEnd) )
-            {
-                atom->build_waveform(tempBuffer);
-                
-                int posWithinWaveform = max(0, bufferStart - atomStart);
-                int posWithinBuffer = max(0, atomStart - bufferStart);
-                
-                int numSamplesToCopy = support.len - max(0, bufferStart - atomStart) - max(0, atomEnd - bufferEnd);
-                
-                while (numSamplesToCopy > 0)
-                {
-                    bufferToFill.buffer->addSample(0, posWithinBuffer, (float) tempBuffer[posWithinWaveform]);
-                    
-                    ++posWithinWaveform;
-                    ++posWithinBuffer;
-                    --numSamplesToCopy;
-                }
-                
-            }
-        }
-        
-        nextReadPosition += bufferToFill.numSamples;
-        
+        currentBleedValue = engine->getBleedValue();
+        updateBleed();
     }
-    else
-    {
+    
+//    if (!isCurrentlyScrubbing && isCurrentlyPlaying)
+//    {
+//        for (int i = 0; i < engine->scrubAtoms.size(); ++i)
+//        {
+//            MP_Atom_c* atom = engine->scrubAtoms[i]->atom;
+//            MP_Support_t support = atom->support[0];
+//            
+//            
+//            
+//            int atomStart = support.pos;
+//            int atomEnd = atomStart + support.len;
+//            
+//            if ( !(atomEnd < bufferStart || atomStart >= bufferEnd) )
+//            {
+//                atom->build_waveform(tempBuffer);
+//                
+//                int posWithinWaveform = max(0, bufferStart - atomStart);
+//                int posWithinBuffer = max(0, atomStart - bufferStart);
+//                
+//                int numSamplesToCopy = support.len - max(0, bufferStart - atomStart) - max(0, atomEnd - bufferEnd);
+//                
+//                while (numSamplesToCopy > 0)
+//                {
+//                    bufferToFill.buffer->addSample(0, posWithinBuffer, (float) tempBuffer[posWithinWaveform]);
+//                    
+//                    ++posWithinWaveform;
+//                    ++posWithinBuffer;
+//                    --numSamplesToCopy;
+//                }
+//                
+//            }
+//        }
+//        
+//        nextReadPosition += bufferToFill.numSamples;
+//        
+//    }
+//    else
+//    if (isCurrentlyRunning)
+//    {
         int numAtoms = 0;
         int numAtomsTooQuiet = 0;
-        int numAtomsNotSupported = scrubAtoms.size();
+        int numAtomsNotSupported = engine->scrubAtoms.size();
 
-            for (int i = 0; i < scrubAtoms.size(); ++i)
+            for (int i = 0; i < engine->scrubAtoms.size(); ++i)
             {
                     
                 
-                ScrubAtom* scrubAtom = scrubAtoms[i];
+                AtomicAudioEngine::ScrubAtom* scrubAtom = engine->scrubAtoms[i];
                 MP_Atom_c* atom = scrubAtom->atom;
                 
                 MP_Support_t* support = atom->support;
@@ -92,19 +110,52 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 
                 if ( nextReadPosition > atomStart && nextReadPosition < atomEnd )
                 {
-                    
-                    double amp = *atom->amp * scrubAtom->window[nextReadPosition - atomStart];
-                    
                     // Check if atom could be heard
                     
-                    if (Decibels::gainToDecibels(amp) >= -90)
+                    if (Decibels::gainToDecibels(*atom->amp) >= -90)
                     {
+                        // generate window
+                    
+                        double window[bufferToFill.numSamples];
+                        
+                        double amp = *atom->amp;
+                        
+                        if (isCurrentlyScrubbing)
+                        {
+                            double currentWindowAmp = scrubAtom->window[nextReadPosition - atomStart];
+                            
+                            for (int n = 0; n < numSamples; ++n)
+                                window[n] = amp * currentWindowAmp;
+                        }
+                        else
+                        {
+                            for (int n = 0; n < numSamples; ++n)
+                            {
+                                double value;
+                               
+                                int pos = nextReadPosition - atomStart + n;
+                                
+                                if (pos < 0 || pos >= atom->support->len)
+                                    value = 0.0;
+                                else
+                                    value = scrubAtom->window[pos];
+                                
+                                window[n] = value * amp;
+//                                DBG(value*amp);
+                            }
+
+                        }
+                    
+                    
                         numAtoms++;
                         numAtomsNotSupported--;
-                    
+                        
                         // Generate output for whole buffer
                         
-                        for (int n = 0; n < numSamples; ++n)
+                        int start = max((int) (atomStart - nextReadPosition), 0);
+                        int end = max((int) (nextReadPosition - atomEnd), numSamples);
+
+                        for (int n = start; n < end; ++n)
                         {
 
                             float phase = scrubAtom->currentPhase + scrubAtom->phaseInc;
@@ -112,7 +163,10 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                             if (phase >= 2 * M_PI)
                                 phase -= 2 * M_PI;
                             
-                            bufferToFill.buffer->addSample(0, n, osc->getSample(phase) * amp);
+                            double output = osc->getSample(phase) * window[n];
+                            
+                            bufferToFill.buffer->addSample(0, n, output);
+                            
                             
                             scrubAtom->currentPhase = phase;
                         }
@@ -120,68 +174,47 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 }
                 
             }
-            
+    
+    
             numAtomsCurrentlyPlaying = numAtoms;
             numAtomsCurrentlyTooQuiet = numAtomsTooQuiet;
             numAtomsCurrentlyNotSupported = numAtomsNotSupported;
         
-    }
+        if (!isCurrentlyScrubbing) {
+            nextReadPosition += bufferToFill.numSamples;
+            
+        }
+    
+//    }
     
 }
 
 void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
                             double sampleRate)
 {
+    tempBuffer = new MP_Real_t[16834];
+
 }
 
-void AtomicAudioSource::setBook(MP_Book_c* newBook)
+void AtomicAudioSource::updateBleed()
 {
-    book = newBook;
-
-    if (book != nullptr) {
-        tempBuffer = new MP_Real_t[16384];
+    {
         
-        isCurrentlyScrubbing = true;
+//        ScopedWriteLock swl (engine->bookLock);
         
-        prevReadPosition = -1;
-        nextReadPosition = 0;
-        
-        for (int i = 0; i < book->numAtoms; ++i)
+        for (int i = 0; i < engine->book->numAtoms; ++i)
         {
+            MP_Atom_c* atom = engine->book->atom[i];
             
-            MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
+            int originalLength = engine->scrubAtoms[i]->originalSupport.len;
+            int originalStart = engine->scrubAtoms[i]->originalSupport.pos;
             
-            unsigned char windowType = gabor_atom->windowType;
-            double windowOption = gabor_atom->windowOption;
-            int length = gabor_atom->support[0].len;
-            double* window = new double[length];
+            int newLength = originalLength * currentBleedValue;
+            int newStart = originalStart + round((originalLength - newLength) / 2.0);
             
-            make_window(window, length, windowType, windowOption);
-            
-            
-            
-            float atomPhaseInc = 2 * M_PI * gabor_atom->freq;
-            float atomInitialPhase = gabor_atom->phase[0];
-            
-            if (atomInitialPhase < 0) {
-                atomInitialPhase += 2 * M_PI;
-            }
-            
-            ScrubAtom* newAtom = new ScrubAtom;
-            newAtom->atom = gabor_atom;
-            newAtom->currentPhase = atomInitialPhase;
-            newAtom->phaseInc = atomPhaseInc;
-            newAtom->window = window;
-            
-            scrubAtoms.add(newAtom);
+            atom->support[0].len = newLength;
+            atom->support[0].pos = newStart;
         }
-        
-
     }
-    
-    
-    
-    
-    
-    
+    engine->updateWivigram();
 }

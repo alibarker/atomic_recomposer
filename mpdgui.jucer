@@ -9,12 +9,6 @@
             file="Source/AtomicAudioEngine.cpp"/>
       <FILE id="CfDXGf" name="AtomicAudioEngine.h" compile="0" resource="0"
             file="Source/AtomicAudioEngine.h"/>
-      <FILE id="EXS4Ea" name="AtomicDecomposer.cpp" compile="1" resource="0"
-            file="Source/AtomicDecomposer.cpp"/>
-      <FILE id="onjhaa" name="AtomicDecomposer.h" compile="0" resource="0"
-            file="Source/AtomicDecomposer.h"/>
-      <FILE id="seh9no" name="WavetableSinOscillator.cpp" compile="1" resource="0"
-            file="Source/WavetableSinOscillator.cpp"/>
       <FILE id="UmTyQa" name="WavetableSinOscillator.h" compile="0" resource="0"
             file="Source/WavetableSinOscillator.h"/>
       <FILE id="eopITd" name="AtomicAudioSource.cpp" compile="1" resource="0"
@@ -51,6 +45,9 @@
                extraLinkerFlags="-l mptk " externalLibraries="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
+                       isDebug="1" optimisation="1" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
+                       libraryPath="/usr/local/lib&#10;"/>
+        <CONFIGURATION name="Profile" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
                        isDebug="1" optimisation="3" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
                        libraryPath="/usr/local/lib&#10;"/>
         <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="default" osxArchitecture="default"

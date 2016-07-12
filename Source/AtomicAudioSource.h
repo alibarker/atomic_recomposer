@@ -16,11 +16,13 @@
 #include "gabor_atom_plugin.h"
 #include "WavetableSinOscillator.h"
 
+class AtomicAudioEngine;
+
 class AtomicAudioSource : public PositionableAudioSource
 {
 public:
     
-    AtomicAudioSource();
+    AtomicAudioSource(AtomicAudioEngine* aae);
     ~AtomicAudioSource() {}
     
     void setNextReadPosition (int64 newPosition) override {nextReadPosition = newPosition;}
@@ -31,14 +33,15 @@ public:
     int64 getTotalLength() const override;
     
     /** Returns true if this source is actually playing in a loop. */
-    bool isLooping() const override {return false;}
+    bool isLooping() const override {return isCurrentlyScrubbing;}
+    
+    virtual void setLooping (bool shouldLoop) override;
     
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override;
 
     virtual void releaseResources() override {}
 
-    void setBook(MP_Book_c* newBook);
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
@@ -47,27 +50,25 @@ public:
     int numAtomsCurrentlyPlaying;
     int numAtomsCurrentlyTooQuiet;
     int numAtomsCurrentlyNotSupported;
-
+    
+    void updateBleed();
     
 private:
     
-    MP_Book_c* book;
+//    MP_Book_c* book;
     
     ScopedPointer<MP_Real_t> tempBuffer;
+
     
-    struct ScrubAtom {
-        MP_Atom_c* atom;
-        float currentPhase;
-        float phaseInc;
-        double* window;
-    };
-    
-    OwnedArray<ScrubAtom> scrubAtoms;
+    AtomicAudioEngine* engine;
     
     int64 prevReadPosition;
     int64 nextReadPosition;
     
     bool isCurrentlyScrubbing;
+    bool isCurrentlyRunning;
+    
+    float currentBleedValue;
     
     
 };
