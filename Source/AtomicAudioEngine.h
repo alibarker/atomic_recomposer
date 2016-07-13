@@ -34,13 +34,15 @@ public:
             stopTimer();
             bookLock.exitRead();
         }
-
     }
     
     void startPlaying() { transportSource.start(); }
     void stopPlaying() { transportSource.stop(); }
-    void setScrubbing(bool status);
     
+    bool isPlaying() {return transportSource.isPlaying(); }
+    
+    void setScrubbing(bool status);
+    bool isCurrentlyScrubbing();
 
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override

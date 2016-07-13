@@ -103,17 +103,13 @@ MainContentComponent::MainContentComponent()
     /* Start/Stop Buttons */
     
     buttonStart = new TextButton("Start");
-    buttonStart->setBounds(160, 1, 100, 20);
+    buttonStart->setBounds(160, 1, 150, 20);
     addAndMakeVisible(buttonStart);
     buttonStart->addListener(this);
 
-    buttonStop = new TextButton("Stop");
-    buttonStop->setBounds(261, 1, 100, 20);
-    addAndMakeVisible(buttonStop);
-    buttonStop->addListener(this);
-
+  
     buttonScrub = new TextButton("Scrub");
-    buttonScrub->setBounds(362, 1, 100, 20);
+    buttonScrub->setBounds(312, 1, 150, 20);
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     buttonScrub->setClickingTogglesState(true);
@@ -210,14 +206,29 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == buttonStart)
     {
-        audioEngine->startPlaying();
-    }
-    else if (buttonThatWasClicked == buttonStop)
-    {
-        audioEngine->stopPlaying();
+        if ( audioEngine->isPlaying() )
+        {
+            audioEngine->stopPlaying();
+            buttonStart->setButtonText("Start");
+        }
+        else
+        {
+            audioEngine->startPlaying();
+            buttonStart->setButtonText("Stop");
+        }
     }
     else if (buttonThatWasClicked == buttonScrub)
     {
-        audioEngine->setScrubbing(buttonThatWasClicked->getToggleState());
+        if (buttonScrub->getToggleState()) {
+            audioEngine->setScrubbing(buttonScrub->getToggleState());
+            buttonScrub->setButtonText("Stop Scrubbing");
+            audioEngine->startPlaying();
+        }
+        else
+        {
+            audioEngine->setScrubbing(buttonThatWasClicked->getToggleState());
+            buttonScrub->setButtonText("Start Scrubbing");
+            audioEngine->stopPlaying();
+        }
     }
 }

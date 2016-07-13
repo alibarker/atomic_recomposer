@@ -22,6 +22,9 @@ AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("De
     
 }
 
+bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(); }
+
+
 void AtomicAudioEngine::setScrubbing(bool status)
 {
     atomicSource->setLooping(status);
