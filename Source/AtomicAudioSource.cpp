@@ -17,7 +17,7 @@ AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
     isCurrentlyScrubbing = false;
     isCurrentlyRunning = false;
     
-    prevReadPosition = -1;
+    prevReadPosition = 0;
     nextReadPosition = 0;
     
 }
@@ -43,6 +43,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->book->numChans);
     
     bufferToFill.buffer->clear();
+    
     
     if (currentBleedValue != engine->getBleedValue())
     {
@@ -81,9 +82,25 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                         if (isCurrentlyScrubbing)
                         {
                             double currentWindowAmp = scrubAtom->window[nextReadPosition - atomStart];
+
                             
-                            for (int n = 0; n < numSamples; ++n)
-                                window[n] = currentWindowAmp;
+                            if (nextReadPosition != prevReadPosition)
+                            {
+                                double prevWindowAmp = scrubAtom->window[prevReadPosition - atomStart];
+                                
+                                for (int n = 0; n < numSamples; ++n)
+                                {
+                                    float fadeAmount = (float) n / (numSamples - 1);
+                                    window[n] = (1 - fadeAmount) * prevWindowAmp + fadeAmount * currentWindowAmp;
+                                }
+                            }
+                            else
+                            {
+                                for (int n = 0; n < numSamples; ++n)
+                                {
+                                    window[n] = currentWindowAmp;
+                                }
+                            }
                         }
                         else
                         {
@@ -144,6 +161,8 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
             nextReadPosition += bufferToFill.numSamples;
             
         }
+    
+    prevReadPosition = nextReadPosition;
     
 }
 
