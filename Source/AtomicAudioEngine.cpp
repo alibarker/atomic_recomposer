@@ -11,9 +11,10 @@
 #include "AtomicAudioEngine.h"
 #include "AtomicAudioSource.h"
 
-AtomicAudioEngine::AtomicAudioEngine(int wivigramWidth, int wivigramHeight) : Thread("Decomposition")
+AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("Decomposition")
 {
-    wivigram = new Wivigram(wivigramWidth, wivigramHeight);
+    wivigramWidth = wiviWidth;
+    wivigramHeight = wiviHeight;
     
     bleedValue = 1.0;
     
@@ -30,7 +31,7 @@ void AtomicAudioEngine::setScrubbing(bool status)
 void AtomicAudioEngine::updateWivigram()
 {
     
-    map = new MP_TF_Map_c(wivigram->getWidth(), wivigram->getHeight(), book->numChans, 0, book->numSamples, 0.0, 0.5);
+    map = new MP_TF_Map_c(wivigramWidth, wivigramHeight, book->numChans, 0, book->numSamples, 0.0, 0.5);
     {
         ScopedReadLock srl(bookLock);
         book->add_to_tfmap(map, MP_TFMAP_PSEUDO_WIGNER, NULL);

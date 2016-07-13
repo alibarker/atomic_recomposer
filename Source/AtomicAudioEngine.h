@@ -14,34 +14,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
 
-class Wivigram : public ChangeBroadcaster
-{
-public:
-    Wivigram(int width, int height)
-    {
-        size.setSize(width, height);
-        image = new Image(Image::RGB, width, height, true);
-    }
-    
-    Image getImage();
-    
-    void updateDimensions(int width, int height)
-    {
-        size.setSize(width, height);
-    }
-    
-    int getHeight() { return size.getHeight(); }
-    int getWidth() { return size.getWidth(); }
-    
-
-    ScopedPointer<Image> image;
-    
-    
-private:
-    Rectangle<int> size;
-    
-};
-
 class AtomicAudioSource;
 
 class AtomicAudioEngine :   public AudioAppComponent,
@@ -102,15 +74,11 @@ public:
     
     void resizeWivigram(int width, int height)
     {
-        wivigram = new Wivigram(width, height);
+        wivigramWidth = width;
+        wivigramHeight = height;
         updateWivigram();
     }
     
-    Image getWivigramImage()
-    {
-        ScopedReadLock srl(bookLock);
-        return *wivigram->image;
-    }
     
     void setStatus(String val);
     String getStatus()
@@ -150,8 +118,8 @@ private:
     File signal;
     int numIterations;
     
-    ScopedPointer<Wivigram> wivigram;
-    
+    int wivigramHeight;
+    int wivigramWidth;
     
     bool startDecomposition = false;
     

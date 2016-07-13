@@ -141,7 +141,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                                     value = scrubAtom->window[pos];
                                 
                                 window[n] = value * amp;
-//                                DBG(value*amp);
                             }
 
                         }
