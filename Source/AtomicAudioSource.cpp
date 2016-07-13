@@ -40,11 +40,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 {
     
     int numSamples = bufferToFill.numSamples;
+    int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->book->numChans);
     
     bufferToFill.buffer->clear();
-    
-//    int bufferStart = nextReadPosition;
-//    int bufferEnd = nextReadPosition + numSamples;
     
     if (currentBleedValue != engine->getBleedValue())
     {
@@ -52,45 +50,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         updateBleed();
     }
     
-//    if (!isCurrentlyScrubbing && isCurrentlyPlaying)
-//    {
-//        for (int i = 0; i < engine->scrubAtoms.size(); ++i)
-//        {
-//            MP_Atom_c* atom = engine->scrubAtoms[i]->atom;
-//            MP_Support_t support = atom->support[0];
-//            
-//            
-//            
-//            int atomStart = support.pos;
-//            int atomEnd = atomStart + support.len;
-//            
-//            if ( !(atomEnd < bufferStart || atomStart >= bufferEnd) )
-//            {
-//                atom->build_waveform(tempBuffer);
-//                
-//                int posWithinWaveform = max(0, bufferStart - atomStart);
-//                int posWithinBuffer = max(0, atomStart - bufferStart);
-//                
-//                int numSamplesToCopy = support.len - max(0, bufferStart - atomStart) - max(0, atomEnd - bufferEnd);
-//                
-//                while (numSamplesToCopy > 0)
-//                {
-//                    bufferToFill.buffer->addSample(0, posWithinBuffer, (float) tempBuffer[posWithinWaveform]);
-//                    
-//                    ++posWithinWaveform;
-//                    ++posWithinBuffer;
-//                    --numSamplesToCopy;
-//                }
-//                
-//            }
-//        }
-//        
-//        nextReadPosition += bufferToFill.numSamples;
-//        
-//    }
-//    else
-//    if (isCurrentlyRunning)
-//    {
         int numAtoms = 0;
         int numAtomsTooQuiet = 0;
         int numAtomsNotSupported = engine->scrubAtoms.size();
@@ -118,14 +77,13 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                     
                         double window[bufferToFill.numSamples];
                         
-                        double amp = *atom->amp;
                         
                         if (isCurrentlyScrubbing)
                         {
                             double currentWindowAmp = scrubAtom->window[nextReadPosition - atomStart];
                             
                             for (int n = 0; n < numSamples; ++n)
-                                window[n] = amp * currentWindowAmp;
+                                window[n] = currentWindowAmp;
                         }
                         else
                         {
@@ -140,7 +98,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                                 else
                                     value = scrubAtom->window[pos];
                                 
-                                window[n] = value * amp;
+                                window[n] = value;
                             }
 
                         }
@@ -153,21 +111,24 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                         
                         int start = max((int) (atomStart - nextReadPosition), 0);
                         int end = max((int) (nextReadPosition - atomEnd), numSamples);
-
-                        for (int n = start; n < end; ++n)
+                        for (int ch = 0; ch < numChans; ch++)
                         {
+                            for (int n = start; n < end; ++n)
+                            {
+                                double amp = atom->amp[ch];
 
-                            float phase = scrubAtom->currentPhase + scrubAtom->phaseInc;
-                            
-                            if (phase >= 2 * M_PI)
-                                phase -= 2 * M_PI;
-                            
-                            double output = osc->getSample(phase) * window[n];
-                            
-                            bufferToFill.buffer->addSample(0, n, output);
-                            
-                            
-                            scrubAtom->currentPhase = phase;
+                                float phase = scrubAtom->currentPhase[ch] + scrubAtom->phaseInc;
+                                
+                                if (phase >= 2 * M_PI)
+                                    phase -= 2 * M_PI;
+                                
+                                double output = osc->getSample(phase) * window[n] * amp;
+                                
+                                bufferToFill.buffer->addSample(ch, n, output);
+                                
+                                
+                                scrubAtom->currentPhase[ch] = phase;
+                            }
                         }
                     } else {numAtomsTooQuiet++;}
                 }
@@ -184,8 +145,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
             
         }
     
-//    }
-    
 }
 
 void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
@@ -198,9 +157,7 @@ void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
 void AtomicAudioSource::updateBleed()
 {
     {
-        
-//        ScopedWriteLock swl (engine->bookLock);
-        
+                
         for (int i = 0; i < engine->book->numAtoms; ++i)
         {
             MP_Atom_c* atom = engine->book->atom[i];
@@ -211,8 +168,11 @@ void AtomicAudioSource::updateBleed()
             int newLength = originalLength * currentBleedValue;
             int newStart = originalStart + round((originalLength - newLength) / 2.0);
             
-            atom->support[0].len = newLength;
-            atom->support[0].pos = newStart;
+            for (int ch = 0; ch < atom->numChans; ++ch)
+            {
+                atom->support[ch].len = newLength;
+                atom->support[ch].pos = newStart;
+            }
         }
     }
     engine->updateWivigram();

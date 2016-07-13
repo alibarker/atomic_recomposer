@@ -96,8 +96,8 @@ public:
   
     struct ScrubAtom {
         MP_Atom_c* atom;
-        float currentPhase;
-        float phaseInc;
+        double* currentPhase;
+        double phaseInc;
         double* window;
         MP_Support_t originalSupport;
     };

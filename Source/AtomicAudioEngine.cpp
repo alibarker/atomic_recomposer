@@ -38,8 +38,6 @@ void AtomicAudioEngine::updateWivigram()
     {
         ScopedReadLock srl(bookLock);
         book->add_to_tfmap(map, MP_TFMAP_PSEUDO_WIGNER, NULL);
-    
-//        wivigram->updateWivigram(map);
     }
     
     sendChangeMessage();
@@ -204,26 +202,37 @@ void AtomicAudioEngine::prepareBook()
             
             MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
             
+            // Generate Window
+            
             unsigned char windowType = gabor_atom->windowType;
             double windowOption = gabor_atom->windowOption;
+            
             int length = gabor_atom->support[0].len;
             double* window = new double[length];
             
             make_window(window, length, windowType, windowOption);
             
-            
-            
-            float atomPhaseInc = 2 * M_PI * gabor_atom->freq;
-            float atomInitialPhase = gabor_atom->phase[0];
-            
-            if (atomInitialPhase < 0) {
-                atomInitialPhase += 2 * M_PI;
-            }
+            // Prepare additional parameters
             
             ScrubAtom* newAtom = new ScrubAtom;
+            int numChannels = gabor_atom->numChans;
+
+            newAtom->currentPhase = new double[numChannels];
+
+            for (int ch = 0; ch < gabor_atom->numChans; ++ch)
+            {
+                double atomInitialPhase = gabor_atom->phase[ch];
+                
+                if (atomInitialPhase < 0)
+                {
+                    atomInitialPhase += 2 * M_PI;
+                }
+                
+                newAtom->currentPhase[ch] = atomInitialPhase;
+            }
+            
             newAtom->atom = gabor_atom;
-            newAtom->currentPhase = atomInitialPhase;
-            newAtom->phaseInc = atomPhaseInc;
+            newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
             newAtom->window = window;
             newAtom->originalSupport = *gabor_atom->support;
             
