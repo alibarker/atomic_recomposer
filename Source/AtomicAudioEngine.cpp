@@ -129,7 +129,6 @@ void AtomicAudioEngine::decomposition()
         
         String filename(String(signal.getParentDirectory().getFullPathName() + "/" +  signal.getFileNameWithoutExtension() + "approx" + signal.getFileExtension()));
         
-        DBG(filename);
         sig->wavwrite(filename.getCharPointer());
         
         
@@ -190,27 +189,52 @@ float AtomicAudioEngine::getTransportPosition()
     return 0.0;
 }
 
+double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
+{
+    
+    double output;
+    
+    if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
+        int originalLength = windowBuffer->getNumSamples();
+        float ratio = (float) originalLength/atomLength;
+        
+        int bufferSamplePos = floor(sampleInAtom) * ratio;
+        
+        output = windowBuffer->getSample(0, bufferSamplePos);
+        
+    }
+    else
+    {
+        output = 0.0;
+    }
+    
+    
+    
+    return output;
+    
+    
+}
+
+
 void AtomicAudioEngine::prepareBook()
 {
     if (book != nullptr) {
-        tempBuffer = new MP_Real_t[16384];
+        
+        int windowLength = 16384;
+        windowBuffer = new AudioBuffer<MP_Real_t>(1, windowLength);
         scrubAtoms.clear();
-   
+
+        
+        unsigned char windowType = 9;
+        double windowOption = 0;
+
+        make_window(windowBuffer->getWritePointer(0), windowLength, windowType, windowOption);
+
         
         for (int i = 0; i < book->numAtoms; ++i)
         {
             
             MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
-            
-            // Generate Window
-            
-            unsigned char windowType = gabor_atom->windowType;
-            double windowOption = gabor_atom->windowOption;
-            
-            int length = gabor_atom->support[0].len;
-            double* window = new double[length];
-            
-            make_window(window, length, windowType, windowOption);
             
             // Prepare additional parameters
             
@@ -233,7 +257,6 @@ void AtomicAudioEngine::prepareBook()
             
             newAtom->atom = gabor_atom;
             newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
-            newAtom->window = window;
             newAtom->originalSupport = *gabor_atom->support;
             
             scrubAtoms.add(newAtom);

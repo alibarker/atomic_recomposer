@@ -68,12 +68,10 @@ public:
     AudioTransportSource transportSource;
     
     void setTransportPosition(float posAsPercentage);
-    
-    
     float getTransportPosition();
     
+    double getWindowValue(int atomLength, int sampleInAtom);
 
-    
     void resizeWivigram(int width, int height)
     {
         wivigramWidth = width;
@@ -109,11 +107,11 @@ public:
 
     ScopedPointer<MP_TF_Map_c> map;
 
-    
+    ScopedPointer<AudioBuffer<MP_Real_t>> windowBuffer;
+
 private:
     
     void decomposition();
-    ScopedPointer<MP_Real_t> tempBuffer;
 
     bool isScrubbing = false;
     File dictionary;

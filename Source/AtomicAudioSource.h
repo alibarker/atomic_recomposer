@@ -45,6 +45,7 @@ public:
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
+    
     ScopedPointer<WavetableSinOscillator> osc;
     
     int numAtomsCurrentlyPlaying;
@@ -58,6 +59,7 @@ private:
 //    MP_Book_c* book;
     
     ScopedPointer<MP_Real_t> tempBuffer;
+    double getWindowValues(int atomLength, int startSample);
 
     
     AtomicAudioEngine* engine;

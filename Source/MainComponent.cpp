@@ -128,7 +128,7 @@ MainContentComponent::~MainContentComponent()
     
 }
 
-void MainContentComponent::mouseDrag(const juce::MouseEvent &event)
+void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
     if (event.originalComponent == cursor) {
         float scrubPos = (float) event.x / (float) getWidth();

@@ -13,6 +13,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+static const double two_pi = 2 * M_PI;
+static const double inv_two_pi = 1 / (2 * M_PI);
 
 class WavetableSinOscillator
 {
@@ -27,11 +29,11 @@ public:
         
         for (int i = 0; i < wavetableSize; ++i)
         {
-            float phase = 2 * M_PI * i / (float) wavetableSize;
+            float phase = two_pi * i / (float) wavetableSize;
             wavetable.setSample(0, i, sin(phase));
         }
         
-        interpolation = linearInterpolation;
+        interpolation = noInterpolation;
         
     }
     
@@ -39,7 +41,7 @@ public:
     
     float getSample(float phase)
     {
-        float samplePos = phase * size / (2 * M_PI);
+        float samplePos = phase * size * inv_two_pi;
         
         int intPhase = floor(samplePos);
         float output;
@@ -47,7 +49,7 @@ public:
         switch (interpolation) {
                 
             case noInterpolation:
-                output = wavetable.getSample(0, intPhase);
+                output = *wavetable.getReadPointer(0, intPhase); // was at x916 for 10000 atoms
                 break;
                 
             case linearInterpolation:
