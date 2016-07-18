@@ -130,12 +130,24 @@ MainContentComponent::~MainContentComponent()
 
 void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
-    if (event.originalComponent == cursor) {
-        float scrubPos = (float) event.x / (float) getWidth();
-        audioEngine->setTransportPosition(scrubPos);
-
+    if (event.originalComponent == cursor)
+    {
+ 
+            float scrubPos = (float) event.x / (float) getWidth();
+            audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
     }
 }
+
+void MainContentComponent::mouseDown(const MouseEvent &event)
+{
+    
+    
+//    if (event.originalComponent == cursor && event.mouseWasClicked()) {
+//        float scrubPos = (float) event.x / (float) getWidth();
+//        audioEngine->setTransportPosition(scrubPos, false);
+//    }
+}
+
 
 
 void MainContentComponent::paint (Graphics& g)

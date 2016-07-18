@@ -16,7 +16,9 @@ AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("De
     wivigramWidth = wiviWidth;
     wivigramHeight = wiviHeight;
     
+    
     bleedValue = 1.0;
+    targetPosition = -1;
     
     startThread();
     
@@ -28,6 +30,7 @@ bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(
 void AtomicAudioEngine::setScrubbing(bool status)
 {
     atomicSource->setLooping(status);
+    targetPosition = -1;
 }
 
 
@@ -168,12 +171,19 @@ void AtomicAudioEngine::triggerDecomposition(File dict, File sig, int numIter)
     
 }
 
-void AtomicAudioEngine::setTransportPosition(float posAsPercentage)
+void AtomicAudioEngine::setTransportPosition(float posAsPercentage, bool isCurrentlyDragging)
 {
     int length = transportSource.getTotalLength();
     if (length != 0) {
         int64 newPos = min ( (int) round(posAsPercentage*length), length -1) ;
-        transportSource.setNextReadPosition( newPos );
+        
+        if (isCurrentlyDragging)
+            targetPosition = newPos;
+        else
+        {
+            transportSource.setNextReadPosition( newPos );
+            targetPosition = -1;
+        }
     }
 }
 
@@ -189,16 +199,14 @@ float AtomicAudioEngine::getTransportPosition()
     return 0.0;
 }
 
-double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
+double AtomicAudioEngine::getWindowValue(int atomNumber, int sampleInAtom)
 {
     
     double output;
     
-    if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
-        int originalLength = windowBuffer->getNumSamples();
-        float ratio = (float) originalLength/atomLength;
+    if ( isPositiveAndBelow(sampleInAtom, (int) book->atom[atomNumber]->support->len)) {
         
-        int bufferSamplePos = floor(sampleInAtom) * ratio;
+        int bufferSamplePos = floor(sampleInAtom * scrubAtoms.getUnchecked(atomNumber)->ratio);
         
         output = windowBuffer->getSample(0, bufferSamplePos);
         
@@ -215,6 +223,30 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
     
 }
 
+void AtomicAudioEngine::updateBleed()
+{
+    {
+        
+        for (int i = 0; i < book->numAtoms; ++i)
+        {
+            MP_Atom_c* atom = book->atom[i];
+            
+            int originalLength = scrubAtoms[i]->originalSupport.len;
+            int originalStart = scrubAtoms[i]->originalSupport.pos;
+            
+            int newLength = originalLength * getBleedValue();
+            int newStart = originalStart + round((originalLength - newLength) / 2.0);
+            scrubAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
+
+            for (int ch = 0; ch < atom->numChans; ++ch)
+            {
+                atom->support[ch].len = newLength;
+                atom->support[ch].pos = newStart;
+            }
+        }
+    }
+    updateWivigram();
+}
 
 void AtomicAudioEngine::prepareBook()
 {
@@ -258,7 +290,7 @@ void AtomicAudioEngine::prepareBook()
             newAtom->atom = gabor_atom;
             newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
             newAtom->originalSupport = *gabor_atom->support;
-            
+            newAtom->ratio = windowLength / gabor_atom->support->len;
             scrubAtoms.add(newAtom);
         }
         

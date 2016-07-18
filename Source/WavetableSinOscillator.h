@@ -25,6 +25,8 @@ public:
     {
         size = wavetableSize;
         
+        sizeOver2Pi = size * inv_two_pi;
+        
         wavetable.setSize(1, wavetableSize);
         
         for (int i = 0; i < wavetableSize; ++i)
@@ -41,7 +43,7 @@ public:
     
     float getSample(float phase)
     {
-        float samplePos = phase * size * inv_two_pi;
+        float samplePos = phase * sizeOver2Pi;
         
         int intPhase = floor(samplePos);
         float output;
@@ -75,6 +77,8 @@ private:
     AudioSampleBuffer wavetable;
     int size;
     float phaseInc;
+    
+    float sizeOver2Pi;
     
     enum InterpolationType
     {

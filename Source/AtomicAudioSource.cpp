@@ -48,7 +48,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     if (currentBleedValue != engine->getBleedValue())
     {
         currentBleedValue = engine->getBleedValue();
-        updateBleed();
+        engine->updateBleed();
     }
     
     // current atom status info
@@ -82,15 +82,17 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 // TODO: Improve this line!!!!
             
                 double window[bufferToFill.numSamples];
-                
+                int start = max((int) (atomStart - nextReadPosition), 0);
+                int end = max((int) (nextReadPosition - atomEnd), numSamples);
+
                 if (isCurrentlyScrubbing)
                 {
-                    double currentWindowAmp = engine->getWindowValue( atomLength,  nextReadPosition - atomStart);
+                    double currentWindowAmp = engine->getWindowValue( i,  nextReadPosition - atomStart);
                     
                     if (nextReadPosition != prevReadPosition)
                     {
                         
-                        double prevWindowAmp = engine->getWindowValue( atomLength,  prevReadPosition - atomStart);
+                        double prevWindowAmp = engine->getWindowValue( i,  prevReadPosition - atomStart);
                         
                         for (int n = 0; n < numSamples; ++n)
                         {
@@ -100,7 +102,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                     }
                     else
                     {
-                        for (int n = 0; n < numSamples; ++n)
+                        for (int n = start; n < end; ++n)
                         {
                             window[n] = currentWindowAmp;
                         }
@@ -117,7 +119,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                         if (pos < 0 || pos >= atom->support->len)
                             value = 0.0;
                         else
-                            value = engine->getWindowValue( atomLength,  pos);
+                            value = engine->getWindowValue( i,  pos);
                         
                         window[n] = value;
                     }
@@ -130,8 +132,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 
                 /* Generate output for whole buffer */
                 
-                int start = max((int) (atomStart - nextReadPosition), 0);
-                int end = max((int) (nextReadPosition - atomEnd), numSamples);
                 for (int ch = 0; ch < numChans; ch++)
                 {
                     for (int n = start; n < end; ++n)
@@ -179,26 +179,3 @@ void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
 
 
 
-void AtomicAudioSource::updateBleed()
-{
-    {
-                
-        for (int i = 0; i < engine->book->numAtoms; ++i)
-        {
-            MP_Atom_c* atom = engine->book->atom[i];
-            
-            int originalLength = engine->scrubAtoms[i]->originalSupport.len;
-            int originalStart = engine->scrubAtoms[i]->originalSupport.pos;
-            
-            int newLength = originalLength * currentBleedValue;
-            int newStart = originalStart + round((originalLength - newLength) / 2.0);
-            
-            for (int ch = 0; ch < atom->numChans; ++ch)
-            {
-                atom->support[ch].len = newLength;
-                atom->support[ch].pos = newStart;
-            }
-        }
-    }
-    engine->updateWivigram();
-}

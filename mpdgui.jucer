@@ -48,10 +48,11 @@
                        isDebug="1" optimisation="1" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
                        libraryPath="/usr/local/lib&#10;"/>
         <CONFIGURATION name="Profile" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
-                       isDebug="1" optimisation="3" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
+                       isDebug="0" optimisation="1" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
                        libraryPath="/usr/local/lib&#10;"/>
         <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
-                       isDebug="0" optimisation="2" targetName="mpdgui"/>
+                       isDebug="0" optimisation="2" targetName="mpdgui" headerPath="/usr/local/include&#10;/Users/alibarker89/SDKs/MPTK-Source-0.7.0/src/plugin/base"
+                       libraryPath="/usr/local/lib&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../../../../SDKs/JUCE/modules"/>

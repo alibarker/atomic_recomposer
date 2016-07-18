@@ -25,7 +25,9 @@ public:
     AtomicAudioSource(AtomicAudioEngine* aae);
     ~AtomicAudioSource() {}
     
-    void setNextReadPosition (int64 newPosition) override {nextReadPosition = newPosition;}
+    void setNextReadPosition (int64 newPosition) override {nextReadPosition = newPosition; if (nextReadPosition == 28672)
+    {DBG(nextReadPosition);
+    }}
     
     int64 getNextReadPosition() const override {return nextReadPosition;}
     

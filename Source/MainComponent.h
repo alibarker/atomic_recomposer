@@ -87,6 +87,7 @@ public:
     }
     
     void mouseDrag(const MouseEvent& event) override;
+    void mouseDown(const MouseEvent &event) override;
     void sliderValueChanged (Slider* slider) override
     {
         audioEngine->setBleedValue(slider->getValue());

@@ -48,6 +48,7 @@ public:
                                 double sampleRate) override
     {
         transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+        scrubSmoothAmount = samplesPerBlockExpected;
     }
     
     
@@ -57,7 +58,33 @@ public:
         {
             ScopedReadLock srl (bookLock);
             transportSource.getNextAudioBlock(bufferToFill);
-            
+            if (targetPosition > 0)
+            {
+                int currentPos = transportSource.getNextReadPosition();
+                int nextPos = targetPosition;
+                
+                if (targetPosition > currentPos)
+                {
+                    nextPos = currentPos + scrubSmoothAmount;
+                    if (nextPos >= targetPosition)
+                    {
+                        nextPos = targetPosition;
+                        targetPosition = -1;
+                    }
+                }
+                else if (targetPosition <= currentPos)
+                {
+                    nextPos = currentPos - scrubSmoothAmount;
+                    if (nextPos <= targetPosition)
+                    {
+                        nextPos = targetPosition;
+                        targetPosition = -1;
+                    }
+
+                }
+                
+                transportSource.setNextReadPosition(nextPos);
+            }
         }
     }
     
@@ -67,7 +94,7 @@ public:
     virtual void releaseResources() override {}
     AudioTransportSource transportSource;
     
-    void setTransportPosition(float posAsPercentage);
+    void setTransportPosition(float posAsPercentage, bool isCurrentlyDragging);
     float getTransportPosition();
     
     double getWindowValue(int atomLength, int sampleInAtom);
@@ -93,10 +120,10 @@ public:
     void prepareBook();
   
     struct ScrubAtom {
-        MP_Atom_c* atom;
         double* currentPhase;
         double phaseInc;
-        double* window;
+        MP_Atom_c* atom;
+        double ratio;
         MP_Support_t originalSupport;
     };
     
@@ -108,10 +135,14 @@ public:
     ScopedPointer<MP_TF_Map_c> map;
 
     ScopedPointer<AudioBuffer<MP_Real_t>> windowBuffer;
+    void updateBleed();
 
 private:
     
     void decomposition();
+    
+    int targetPosition;
+    int scrubSmoothAmount;
 
     bool isScrubbing = false;
     File dictionary;
