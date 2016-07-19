@@ -37,43 +37,30 @@ public:
     void buttonClicked (Button* buttonThatWasClicked) override;
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
-        
-//        wivigram->setImage(audioEngine->getWivigramImage());
-//        wivigram->repaint();
-        updateWivigram();
+        if (source == &(audioEngine->transportSource))
+        {
+            if (audioEngine->isPlaying())
+                changeState (Playing);
+            else if (state == Stopping || state == Playing)
+                changeState (Stopped);
+            else if (state == Pausing)
+                changeState(Paused);
+        }
+        else if (source == audioEngine)
+        {
+            updateWivigram();
+        }
     }
     
-    void updateWivigram()
-    {
-        
-        int width = wivigram->getWidth();
-        int height = wivigram->getHeight();
-        
-        MP_Tfmap_t* column;
-        MP_Real_t val;
-        
-        Image image(Image::RGB, width, height, true);
-;
-        
-        for (int i = 0; i < width; i++ )
-        {
-            column = audioEngine->map->channel[0] + i * audioEngine->map->numRows; /* Seek the column */
-            
-            for (int j = 0; j < height; j++ )
-            {
-                val = (MP_Real_t) column[j];
-                image.setPixelAt(i, height - j, Colour::fromHSV (1.0f, 0.0f, 1 - val, 1.0f));
-            }
-        }
-        
-        wivigram->setImage(image);
-    }
+    void updateWivigram();
+    
     
     
     void timerCallback() override
     {
         float newPos = audioEngine->getTransportPosition();
         cursor->scrubPos = newPos * wivigram->getWidth();
+        cursor->isPlayingLeftToRight = audioEngine->getIsPlayingLeftToRight();
         cursor->repaint();
         
         checkStatus();
@@ -121,14 +108,107 @@ private:
     class Cursor : public Component
     {
     public:
-        void paint(Graphics& g) {g.drawLine(scrubPos, 0, scrubPos, getHeight(), 3);}
+        void paint(Graphics& g) {
+            if (isPlayingLeftToRight)
+                g.drawLine(scrubPos, 0, scrubPos, getHeight(), 3);
+            else
+                g.drawLine(0, scrubPos, getWidth(), scrubPos, 3);
+        }
+        
         int scrubPos;
+        
+        bool isPlayingLeftToRight;
 
     };
     
     ScopedPointer<Cursor> cursor;
 
+    enum TransportState
+    {
+        Stopped,
+        Starting,
+        Playing,
+        Pausing,
+        Paused,
+        Stopping,
+        Scrubbing
+    };
     
+    void changeState (TransportState newState)
+    {
+        if (state != newState)
+        {
+            state = newState;
+            
+            switch (state)
+            {
+                case Stopped:                           // [3]
+                    buttonStop->setEnabled (false);
+                    buttonStop->setButtonText("Stop");
+                    buttonStart->setButtonText ("Resume");
+                    audioEngine->setTransportPosition(0.0, false);
+                    audioEngine->setScrubbing(false);
+                    break;
+                    
+                case Starting:                          // [4]
+                    audioEngine->startPlaying();
+                    audioEngine->setScrubbing(false);
+                    break;
+                    
+                case Playing:                           // [5]
+                    buttonStart->setButtonText("Pause");
+                    buttonStop->setButtonText("Stop");
+                    buttonStop->setEnabled (true);
+                    break;
+                    
+                case Pausing:
+                    audioEngine->stopPlaying();
+                    audioEngine->setScrubbing(false);
+                    break;
+                    
+                case Paused:
+                    buttonStart->setButtonText("Resume");
+                    buttonStop->setButtonText("Restart");
+                    break;
+                    
+                case Stopping:                          // [6]
+                    audioEngine->stopPlaying();
+                    audioEngine->setScrubbing(false);
+                    break;
+                    
+                case Scrubbing:                          // [6]
+                    audioEngine->setScrubbing(true);
+                    break;
+            }
+        }
+    }
+    
+    void playButtonClicked()
+    {
+        if (state == Stopped || state == Paused)
+            changeState (Starting);
+        else if (state == Playing)
+            changeState(Pausing);
+    }
+    
+    void stopButtonClicked()
+    {
+        if (state == Paused)
+            changeState (Stopped);
+        else
+            changeState (Stopping);
+    }
+    
+    void scrubButtonClicked()
+    {
+        if (audioEngine->transportSource.isLooping())
+            changeState(Stopped);
+        else
+            changeState(Scrubbing);
+    }
+
+    
+    TransportState state;
 
     ScopedPointer<AtomicAudioEngine> audioEngine;
     //==============================================================================

@@ -52,41 +52,7 @@ public:
     }
     
     
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
-    {
-        if (transportSource.isPlaying())
-        {
-            ScopedReadLock srl (bookLock);
-            transportSource.getNextAudioBlock(bufferToFill);
-            if (targetPosition > 0)
-            {
-                int currentPos = transportSource.getNextReadPosition();
-                int nextPos = targetPosition;
-                
-                if (targetPosition > currentPos)
-                {
-                    nextPos = currentPos + scrubSmoothAmount;
-                    if (nextPos >= targetPosition)
-                    {
-                        nextPos = targetPosition;
-                        targetPosition = -1;
-                    }
-                }
-                else if (targetPosition <= currentPos)
-                {
-                    nextPos = currentPos - scrubSmoothAmount;
-                    if (nextPos <= targetPosition)
-                    {
-                        nextPos = targetPosition;
-                        targetPosition = -1;
-                    }
-
-                }
-                
-                transportSource.setNextReadPosition(nextPos);
-            }
-        }
-    }
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
     float getBleedValue() { return bleedValue; }
     void setBleedValue(float value) { bleedValue = value;}
@@ -106,6 +72,7 @@ public:
         updateWivigram();
     }
     
+    bool getIsPlayingLeftToRight() {return isPlayingLeftRight;}
     
     void setStatus(String val);
     String getStatus()
@@ -138,11 +105,13 @@ public:
     void updateBleed();
 
 private:
-    
+    void smoothScrubbing();
     void decomposition();
     
     int targetPosition;
     int scrubSmoothAmount;
+    
+    bool isPlayingLeftRight;
 
     bool isScrubbing = false;
     File dictionary;

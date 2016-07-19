@@ -20,6 +20,9 @@ AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("De
     bleedValue = 1.0;
     targetPosition = -1;
     
+    isPlayingLeftRight = true;
+    
+    
     startThread();
     
 }
@@ -30,7 +33,10 @@ bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(
 void AtomicAudioEngine::setScrubbing(bool status)
 {
     atomicSource->setLooping(status);
-    targetPosition = -1;
+    if (status) {
+        targetPosition = -1;
+        transportSource.start();
+    }
 }
 
 
@@ -44,9 +50,50 @@ void AtomicAudioEngine::updateWivigram()
     }
     
     sendChangeMessage();
-    
 }
 
+void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+{
+    if (transportSource.isPlaying())
+    {
+        ScopedReadLock srl (bookLock);
+        transportSource.getNextAudioBlock(bufferToFill);
+        
+        smoothScrubbing();
+    }
+}
+
+void AtomicAudioEngine::smoothScrubbing()
+{
+    // smooth scrubbing
+    if (targetPosition > 0)
+    {
+        int currentPos = transportSource.getNextReadPosition();
+        int nextPos = targetPosition;
+        
+        if (targetPosition > currentPos)
+        {
+            nextPos = currentPos + scrubSmoothAmount;
+            if (nextPos >= targetPosition)
+            {
+                nextPos = targetPosition;
+                targetPosition = -1;
+            }
+        }
+        else if (targetPosition <= currentPos)
+        {
+            nextPos = currentPos - scrubSmoothAmount;
+            if (nextPos <= targetPosition)
+            {
+                nextPos = targetPosition;
+                targetPosition = -1;
+            }
+            
+        }
+        
+        transportSource.setNextReadPosition(nextPos);
+    }
+}
 
 
 void AtomicAudioEngine::setStatus(String val)
@@ -134,12 +181,13 @@ void AtomicAudioEngine::decomposition()
         
         sig->wavwrite(filename.getCharPointer());
         
-        
+        // create new source
         atomicSource.release();
         atomicSource = new AtomicAudioSource(this);
         prepareBook();
         transportSource.setSource(atomicSource);
       
+        // mark as complete
         startDecomposition = false;
         
         setStatus("");

@@ -60,7 +60,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     for (int i = 0; i < engine->scrubAtoms.size(); ++i)
     {
         
-        // was at 13%
         AtomicAudioEngine::ScrubAtom* scrubAtom = engine->scrubAtoms.getUnchecked(i);
         MP_Atom_c* atom = scrubAtom->atom;
         

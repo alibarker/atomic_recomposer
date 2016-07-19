@@ -25,6 +25,7 @@ MainContentComponent::MainContentComponent()
     audioEngine = new AtomicAudioEngine(wiviWidth, wiviHeight);
     audioEngine->setAudioChannels (0, 2);
     audioEngine->addChangeListener(this);
+    audioEngine->transportSource.addChangeListener(this);
     
     textEditorDictionary = new TextEditor("Dictionary");
     textEditorDictionary->setBounds(649, 1, 300, 25);
@@ -103,18 +104,29 @@ MainContentComponent::MainContentComponent()
     /* Start/Stop Buttons */
     
     buttonStart = new TextButton("Start");
-    buttonStart->setBounds(160, 1, 150, 20);
+    buttonStart->setBounds(160, 1, 100, 20);
     addAndMakeVisible(buttonStart);
     buttonStart->addListener(this);
 
-  
+    buttonStop = new TextButton("Stop");
+    buttonStop->setBounds(262, 1, 100, 20);
+    addAndMakeVisible(buttonStop);
+    buttonStop->addListener(this);
+
     buttonScrub = new TextButton("Scrub");
-    buttonScrub->setBounds(312, 1, 150, 20);
+    buttonScrub->setBounds(364, 1, 100, 20);
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
-    buttonScrub->setClickingTogglesState(true);
     
+//    
+//    buttonScrub = new TextButton("Scrub");
+//    buttonScrub->setBounds(312, 1, 150, 20);
+//    addAndMakeVisible(buttonScrub);
+//    buttonScrub->addListener(this);
+//    buttonScrub->setClickingTogglesState(true);
+//    
     startTimerHz(60);
+    state = Stopped;
     
 
 }
@@ -154,6 +166,34 @@ void MainContentComponent::paint (Graphics& g)
 {
     g.fillAll (Colour (Colours::whitesmoke));
         
+}
+
+void MainContentComponent::updateWivigram()
+{
+    int mapWidth = audioEngine->map->numCols;
+    int mapHeight = audioEngine->map->numRows;
+    DBG("Width: " << mapWidth << " Height: " << mapHeight);
+    
+    MP_Tfmap_t* column;
+    MP_Real_t val;
+    
+    Image image(Image::RGB, mapWidth, mapHeight, true);
+    
+    
+    for (int i = 0; i < mapWidth; i++ )
+    {
+        column = audioEngine->map->channel[0] + i * mapHeight; /* Seek the column */
+        
+        for (int j = 0; j < mapHeight; j++ )
+        {
+            val = (MP_Real_t) column[j];
+            image.setPixelAt(i, mapHeight - j, Colour::fromHSV (1.0f, 0.0f, 1 - val, 1.0f));
+        }
+    }
+    
+    wivigram->setImage(image);
+    wivigram->setImagePlacement(RectanglePlacement(RectanglePlacement::stretchToFit));
+
 }
 
 void MainContentComponent::resized()
@@ -218,29 +258,14 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == buttonStart)
     {
-        if ( audioEngine->isPlaying() )
-        {
-            audioEngine->stopPlaying();
-            buttonStart->setButtonText("Start");
-        }
-        else
-        {
-            audioEngine->startPlaying();
-            buttonStart->setButtonText("Stop");
-        }
+        playButtonClicked();
+    }
+    else if (buttonThatWasClicked == buttonStop)
+    {
+        stopButtonClicked();
     }
     else if (buttonThatWasClicked == buttonScrub)
     {
-        if (buttonScrub->getToggleState()) {
-            audioEngine->setScrubbing(buttonScrub->getToggleState());
-            buttonScrub->setButtonText("Stop Scrubbing");
-            audioEngine->startPlaying();
-        }
-        else
-        {
-            audioEngine->setScrubbing(buttonThatWasClicked->getToggleState());
-            buttonScrub->setButtonText("Start Scrubbing");
-            audioEngine->stopPlaying();
-        }
+        scrubButtonClicked();
     }
 }
