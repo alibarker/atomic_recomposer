@@ -43,6 +43,7 @@
 		00510B29BB0FF45FB50E6EB8 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_ButtonPropertyComponent.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_gui_basics/properties/juce_ButtonPropertyComponent.h"; sourceTree = "SOURCE_ROOT"; };
 		005A8AFF7EA456B7DBC3B1EB = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_osx_ObjCHelpers.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/native/juce_osx_ObjCHelpers.h"; sourceTree = "SOURCE_ROOT"; };
 		00902B933A98D325E0F2CE97 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_android_SystemStats.cpp"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/native/juce_android_SystemStats.cpp"; sourceTree = "SOURCE_ROOT"; };
+		0170A3B6F48D29EE4C5413FA = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DecompositionProgressWindow.h; path = ../../Source/DecompositionProgressWindow.h; sourceTree = "SOURCE_ROOT"; };
 		01FC493873109F205719FA4A = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_Sampler.cpp"; path = "../../../../../../../SDKs/JUCE/modules/juce_audio_formats/sampler/juce_Sampler.cpp"; sourceTree = "SOURCE_ROOT"; };
 		0237D8CE60F7D55A6BFB95B3 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_OpenGLAppComponent.cpp"; path = "../../../../../../../SDKs/JUCE/modules/juce_opengl/utils/juce_OpenGLAppComponent.cpp"; sourceTree = "SOURCE_ROOT"; };
 		02C1CE31C6E9E4B9B3CCAAB7 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_audio_formats.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_audio_formats/juce_audio_formats.h"; sourceTree = "SOURCE_ROOT"; };
@@ -1242,6 +1243,7 @@
 					942021325CC079C8D48CB139,
 					B250C9162AE2332040973308,
 					A6E73B9BD940B3BF0A8CFD8E,
+					0170A3B6F48D29EE4C5413FA,
 					1541F29A8FA6FDBDF00E4203,
 					8568BC2C9098D83E24B4B187, ); name = Source; sourceTree = "<group>"; };
 		E0766685320B371967490737 = {isa = PBXGroup; children = (

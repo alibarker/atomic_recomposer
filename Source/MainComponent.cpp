@@ -82,21 +82,22 @@ MainContentComponent::MainContentComponent()
     text_editor_num_iterations->setBounds(70, 35, 50, 20);
     addAndMakeVisible (text_editor_num_iterations);
     
-    wivigram = new ImageComponent("Wivigram");
-    addAndMakeVisible(wivigram);
-    wivigram->setBounds(1, 60, wiviWidth, wiviHeight);
+    timeline = new AtomicTimelineComponent("Timeline", wiviWidth, wiviHeight);
     
-    // TODO: Does this line need to wivigram->...
-    addMouseListener(this, true);
+    addAndMakeVisible(timeline);
+    
+    timelineViewport.setViewedComponent(timeline);
+    timelineViewport.setBounds(1, 60, wiviWidth, wiviHeight);
+    addAndMakeVisible(timelineViewport);
+    timelineViewport.setScrollBarsShown(false, true);
 
-    cursor = new Cursor();
-    addAndMakeVisible(cursor);
-    cursor->setBounds(wivigram->getBounds());
-                                 
-//    numAtoms = new Label();
-//    numAtoms->setBounds(160, 1, 800, 20);
-//    addAndMakeVisible(numAtoms);
-//    
+    timeline->addMouseListener(this, false);
+    
+//    cursor = new Cursor();
+//    addAndMakeVisible(cursor);
+//    cursor->setBounds(wivigram->getBounds());
+//    cursor->addMouseListener(this, true);
+
     statusLabel = new Label();
     statusLabel->setBounds(160, 1, 340, 20);
     addAndMakeVisible(statusLabel);
@@ -112,19 +113,12 @@ MainContentComponent::MainContentComponent()
     buttonStop->setBounds(262, 1, 100, 20);
     addAndMakeVisible(buttonStop);
     buttonStop->addListener(this);
-
+    
     buttonScrub = new TextButton("Scrub");
     buttonScrub->setBounds(364, 1, 100, 20);
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
-//    
-//    buttonScrub = new TextButton("Scrub");
-//    buttonScrub->setBounds(312, 1, 150, 20);
-//    addAndMakeVisible(buttonScrub);
-//    buttonScrub->addListener(this);
-//    buttonScrub->setClickingTogglesState(true);
-//    
     startTimerHz(60);
     state = Stopped;
     
@@ -142,22 +136,16 @@ MainContentComponent::~MainContentComponent()
 
 void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
-    if (event.originalComponent == cursor)
+    if (event.originalComponent == timeline)
     {
  
-            float scrubPos = (float) event.x / (float) getWidth();
+            float scrubPos = (float) event.x / (float) timeline->getWidth();
             audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
     }
 }
 
 void MainContentComponent::mouseDown(const MouseEvent &event)
 {
-    
-    
-//    if (event.originalComponent == cursor && event.mouseWasClicked()) {
-//        float scrubPos = (float) event.x / (float) getWidth();
-//        audioEngine->setTransportPosition(scrubPos, false);
-//    }
 }
 
 
@@ -191,8 +179,8 @@ void MainContentComponent::updateWivigram()
         }
     }
     
-    wivigram->setImage(image);
-    wivigram->setImagePlacement(RectanglePlacement(RectanglePlacement::stretchToFit));
+//    wivigram->setImage(image);
+//    wivigram->setImagePlacement(RectanglePlacement(RectanglePlacement::stretchToFit));
 
 }
 
@@ -201,6 +189,63 @@ void MainContentComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+}
+
+void MainContentComponent::changeState (TransportState newState)
+{
+    if (state != newState)
+    {
+        state = newState;
+        
+        switch (state)
+        {
+            case Decomposing:
+                audioEngine->stopPlaying();
+                audioEngine->setScrubbing(false);
+                audioEngine->triggerDecomposition( File(textEditorDictionary->getText()),
+                                                  File(textEditorSignal->getText()),
+                                                  text_editor_num_iterations->getText().getIntValue() );
+                break;
+            case Stopped:                           // [3]
+                buttonStop->setEnabled (false);
+                buttonStop->setButtonText("Stop");
+                buttonStart->setButtonText ("Resume");
+                audioEngine->setTransportPosition(0.0, false);
+                audioEngine->setScrubbing(false);
+                break;
+                
+            case Starting:                          // [4]
+                audioEngine->startPlaying();
+                audioEngine->setScrubbing(false);
+                break;
+                
+            case Playing:                           // [5]
+                buttonStart->setButtonText("Pause");
+                buttonStop->setButtonText("Stop");
+                buttonStop->setEnabled (true);
+                break;
+                
+            case Pausing:
+                audioEngine->stopPlaying();
+                audioEngine->setScrubbing(false);
+                break;
+                
+            case Paused:
+                buttonStart->setButtonText("Resume");
+                buttonStop->setButtonText("Restart");
+                break;
+                
+            case Stopping:                          // [6]
+                audioEngine->stopPlaying();
+                audioEngine->setScrubbing(false);
+                break;
+                
+            case Scrubbing:                          // [6]
+                audioEngine->setScrubbing(true);
+                buttonStop->setEnabled(false);
+                break;
+        }
+    }
 }
 
 float estimateAnalyticIP(MP_Atom_c* atom1, MP_Atom_c* atom2)
@@ -225,10 +270,9 @@ float estimateAnalyticIP(MP_Atom_c* atom1, MP_Atom_c* atom2)
 
 void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
 {
-    if (buttonThatWasClicked == button_decomp) {
-        audioEngine->triggerDecomposition(File(textEditorDictionary->getText()),
-                                        File(textEditorSignal->getText()),
-                                        text_editor_num_iterations->getText().getIntValue());
+    if (buttonThatWasClicked == button_decomp)
+    {
+        decompButtonClicked();
     }
     else if (buttonThatWasClicked == buttonSelectDictionary)
     {

@@ -22,7 +22,6 @@ AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("De
     
     isPlayingLeftRight = true;
     
-    
     startThread();
     
 }
@@ -30,12 +29,14 @@ AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("De
 bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(); }
 
 
-void AtomicAudioEngine::setScrubbing(bool status)
+void AtomicAudioEngine::setScrubbing(bool isScrubbing)
 {
-    atomicSource->setLooping(status);
-    if (status) {
-        targetPosition = -1;
-        transportSource.start();
+    if (atomicSource != nullptr) {
+        atomicSource->setLooping(isScrubbing);
+        if (isScrubbing) {
+            targetPosition = -1;
+            transportSource.start();
+        }
     }
 }
 
@@ -49,7 +50,6 @@ void AtomicAudioEngine::updateWivigram()
         book->add_to_tfmap(map, MP_TFMAP_PSEUDO_WIGNER, NULL);
     }
     
-    sendChangeMessage();
 }
 
 void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
@@ -147,12 +147,11 @@ void AtomicAudioEngine::decomposition()
         return;
     }
     
-    /* Acquire Lock */
+    /* Create Book */
     {
         setStatus("Creating Book");
         
         ScopedWriteLock sl(bookLock);
-        startTimerHz(50);
         
         /* Create the book */
         book = MP_Book_c::create(sig->numChans, sig->numSamples, sig->sampleRate );
@@ -188,16 +187,23 @@ void AtomicAudioEngine::decomposition()
         transportSource.setSource(atomicSource);
       
         // mark as complete
-        startDecomposition = false;
+        currentlyDecomposing = false;
+        
+        setStatus("Updating Map");
+        
+        updateWivigram();
         
         setStatus("");
+        
+        sendChangeMessage();
+        
     }
 }
 
 void AtomicAudioEngine::run()
 {
     while (!threadShouldExit()) {
-        if (startDecomposition) {
+        if (currentlyDecomposing) {
             decomposition();
             
         }
@@ -214,7 +220,7 @@ void AtomicAudioEngine::triggerDecomposition(File dict, File sig, int numIter)
     
     transportSource.stop();
     
-    startDecomposition = true;
+    currentlyDecomposing = true;
     notify();
     
 }

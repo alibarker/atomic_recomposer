@@ -14,6 +14,7 @@
 #include "gabor_atom_plugin.h"
 #include "AtomicAudioSource.h"
 #include "AtomicAudioEngine.h"
+#include "WivigramComponent.h"
 
 
 //#include "harmonic_atom_plugin.h"
@@ -48,7 +49,8 @@ public:
         }
         else if (source == audioEngine)
         {
-            updateWivigram();
+            changeState(Stopped);
+            timeline->updateBook(audioEngine->book);
         }
     }
     
@@ -59,10 +61,7 @@ public:
     void timerCallback() override
     {
         float newPos = audioEngine->getTransportPosition();
-        cursor->scrubPos = newPos * wivigram->getWidth();
-        cursor->isPlayingLeftToRight = audioEngine->getIsPlayingLeftToRight();
-        cursor->repaint();
-        
+        timeline->setCursorPosition( newPos);
         checkStatus();
         
     }
@@ -85,7 +84,10 @@ private:
     ScopedPointer<TextEditor> text_editor_num_iterations;
     ScopedPointer<Label> label_num_iterations;
     
-    ScopedPointer<ImageComponent> wivigram;
+    ScopedPointer<AtomicTimelineComponent> timeline;
+    
+    Viewport timelineViewport;
+    
     MP_TF_Map_c* map;
     
     
@@ -105,26 +107,11 @@ private:
     ScopedPointer<TextButton> buttonScrub;
 
     
-    class Cursor : public Component
-    {
-    public:
-        void paint(Graphics& g) {
-            if (isPlayingLeftToRight)
-                g.drawLine(scrubPos, 0, scrubPos, getHeight(), 3);
-            else
-                g.drawLine(0, scrubPos, getWidth(), scrubPos, 3);
-        }
-        
-        int scrubPos;
-        
-        bool isPlayingLeftToRight;
-
-    };
-    
-    ScopedPointer<Cursor> cursor;
+   
 
     enum TransportState
     {
+        Decomposing,
         Stopped,
         Starting,
         Playing,
@@ -134,53 +121,11 @@ private:
         Scrubbing
     };
     
-    void changeState (TransportState newState)
+    void changeState (TransportState newState);
+    
+    void decompButtonClicked()
     {
-        if (state != newState)
-        {
-            state = newState;
-            
-            switch (state)
-            {
-                case Stopped:                           // [3]
-                    buttonStop->setEnabled (false);
-                    buttonStop->setButtonText("Stop");
-                    buttonStart->setButtonText ("Resume");
-                    audioEngine->setTransportPosition(0.0, false);
-                    audioEngine->setScrubbing(false);
-                    break;
-                    
-                case Starting:                          // [4]
-                    audioEngine->startPlaying();
-                    audioEngine->setScrubbing(false);
-                    break;
-                    
-                case Playing:                           // [5]
-                    buttonStart->setButtonText("Pause");
-                    buttonStop->setButtonText("Stop");
-                    buttonStop->setEnabled (true);
-                    break;
-                    
-                case Pausing:
-                    audioEngine->stopPlaying();
-                    audioEngine->setScrubbing(false);
-                    break;
-                    
-                case Paused:
-                    buttonStart->setButtonText("Resume");
-                    buttonStop->setButtonText("Restart");
-                    break;
-                    
-                case Stopping:                          // [6]
-                    audioEngine->stopPlaying();
-                    audioEngine->setScrubbing(false);
-                    break;
-                    
-                case Scrubbing:                          // [6]
-                    audioEngine->setScrubbing(true);
-                    break;
-            }
-        }
+        changeState (Decomposing);
     }
     
     void playButtonClicked()

@@ -18,23 +18,14 @@ class AtomicAudioSource;
 
 class AtomicAudioEngine :   public AudioAppComponent,
                             public ChangeBroadcaster,
-                            public Thread,
-                            public Timer
+                            public Thread
 {
 public:
   
     AtomicAudioEngine(int wivigramWidth, int wivigramHeight);
     ~AtomicAudioEngine() {stopThread(-1);}
     
-    void timerCallback() override
-    {
-        if (bookLock.tryEnterRead())
-        {
-            updateWivigram();
-            stopTimer();
-            bookLock.exitRead();
-        }
-    }
+
     
     void startPlaying() { transportSource.start(); }
     void stopPlaying() { transportSource.stop(); }
@@ -83,6 +74,7 @@ public:
     
     void run() override;
     void triggerDecomposition(File dictionary, File signal, int numIterations);
+    bool isDecomposing() {return currentlyDecomposing;}
 
     void prepareBook();
   
@@ -93,6 +85,7 @@ public:
         double ratio;
         MP_Support_t originalSupport;
     };
+    
     
     OwnedArray<ScrubAtom> scrubAtoms;
     ScopedPointer<MP_Book_c> book;
@@ -121,7 +114,7 @@ private:
     int wivigramHeight;
     int wivigramWidth;
     
-    bool startDecomposition = false;
+    bool currentlyDecomposing = false;
     
     String status;
     ReadWriteLock statusLock;
@@ -129,6 +122,9 @@ private:
     float bleedValue;
     
     ScopedPointer<AtomicAudioSource> atomicSource;
+    
+
+    
     
 };
 

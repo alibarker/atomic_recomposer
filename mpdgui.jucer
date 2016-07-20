@@ -20,6 +20,8 @@
       <FILE id="JHczlP" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
       <FILE id="ghSi9F" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="Q5W1vJ" name="DecompositionProgressWindow.h" compile="0"
+            resource="0" file="Source/DecompositionProgressWindow.h"/>
       <FILE id="VFsETf" name="mptk.h" compile="0" resource="0" file="../../../../../SDKs/mptk/src/libmptk/mptk.h"/>
       <FILE id="JJmTTo" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
