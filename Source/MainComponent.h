@@ -49,7 +49,7 @@ public:
         }
         else if (source == audioEngine)
         {
-            changeState(Stopped);
+//            changeState(Stopped);
             timeline->updateBook(&audioEngine->rtBook);
         }
     }

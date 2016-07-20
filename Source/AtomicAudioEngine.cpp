@@ -44,6 +44,7 @@ void AtomicAudioEngine::setScrubbing(bool isScrubbing)
 
 void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
+    
     if (transportSource.isPlaying())
     {
         ScopedReadLock srl (bookLock);
@@ -51,6 +52,7 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         
         smoothScrubbing();
     }
+    
 }
 
 void AtomicAudioEngine::smoothScrubbing()
@@ -241,14 +243,16 @@ float AtomicAudioEngine::getTransportPosition()
     return 0.0;
 }
 
-double AtomicAudioEngine::getWindowValue(int atomNumber, int sampleInAtom)
+double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
 {
     
     double output;
     
-    if ( isPositiveAndBelow(sampleInAtom, (int) rtBook.book->atom[atomNumber]->support->len)) {
+    if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
         
-        int bufferSamplePos = floor(sampleInAtom * rtBook.realtimeAtoms[atomNumber]->ratio);
+        float ratio = (float) windowBuffer->getNumSamples() / atomLength;
+        
+        int bufferSamplePos = floor(sampleInAtom * ratio);
         
         output = windowBuffer->getSample(0, bufferSamplePos);
         
@@ -267,26 +271,27 @@ double AtomicAudioEngine::getWindowValue(int atomNumber, int sampleInAtom)
 
 void AtomicAudioEngine::updateBleed()
 {
+    
+    for (int i = 0; i < rtBook.book->numAtoms; ++i)
     {
+        MP_Atom_c* atom = rtBook.book->atom[i];
         
-        for (int i = 0; i < rtBook.book->numAtoms; ++i)
-        {
-            MP_Atom_c* atom = rtBook.book->atom[i];
-            
-            int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
-            int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
-            
-            int newLength = originalLength * getBleedValue();
-            int newStart = originalStart + round((originalLength - newLength) / 2.0);
-            rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
+        int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
+        int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
+        
+        int newLength = originalLength * getBleedValue();
+        int newStart = originalStart + round((originalLength - newLength) / 2.0);
+        rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
 
-            for (int ch = 0; ch < atom->numChans; ++ch)
-            {
-                atom->support[ch].len = newLength;
-                atom->support[ch].pos = newStart;
-            }
+        for (int ch = 0; ch < atom->numChans; ++ch)
+        {
+            atom->support[ch].len = newLength;
+            atom->support[ch].pos = newStart;
         }
     }
+    
+    sendChangeMessage();
+
 }
 
 void AtomicAudioEngine::prepareBook()

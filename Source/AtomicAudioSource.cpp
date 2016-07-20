@@ -44,12 +44,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
     bufferToFill.buffer->clear();
     
-    
-    if (currentBleedValue != engine->getBleedValue())
-    {
-        currentBleedValue = engine->getBleedValue();
-        engine->updateBleed();
-    }
+    float currentBleedValue = engine->getBleedValue();
     
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
@@ -64,8 +59,12 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         MP_Atom_c* atom = scrubAtom->atom;
         
         MP_Support_t* support = atom->support;
-        int atomLength = support->len;
-        int atomStart = support->pos;
+        
+        int originalLength = support->len;
+        int originalStart = support->pos;
+        
+        int atomLength = originalLength * currentBleedValue;
+        int atomStart = originalStart - (atomLength - originalLength) / 2.0f;
         int atomEnd = atomStart + atomLength;
         
         // Check if atom is supported currently
@@ -77,21 +76,19 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
             if (Decibels::gainToDecibels(*atom->amp) >= -90)
             {
                 /* generate window */
-                
-                // TODO: Improve this line!!!!
-            
+                            
                 double window[bufferToFill.numSamples];
                 int start = max((int) (atomStart - nextReadPosition), 0);
                 int end = max((int) (nextReadPosition - atomEnd), numSamples);
 
                 if (isCurrentlyScrubbing)
                 {
-                    double currentWindowAmp = engine->getWindowValue( i,  nextReadPosition - atomStart);
+                    double currentWindowAmp = engine->getWindowValue( atomLength,  nextReadPosition - atomStart);
                     
                     if (nextReadPosition != prevReadPosition)
                     {
                         
-                        double prevWindowAmp = engine->getWindowValue( i,  prevReadPosition - atomStart);
+                        double prevWindowAmp = engine->getWindowValue( atomLength,  prevReadPosition - atomStart);
                         
                         for (int n = 0; n < numSamples; ++n)
                         {
@@ -115,10 +112,10 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                        
                         int pos = nextReadPosition - atomStart + n;
                         
-                        if (pos < 0 || pos >= atom->support->len)
+                        if (pos < 0 || pos >= atomLength)
                             value = 0.0;
                         else
-                            value = engine->getWindowValue( i,  pos);
+                            value = engine->getWindowValue( atomLength,  pos);
                         
                         window[n] = value;
                     }

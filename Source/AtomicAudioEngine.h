@@ -27,6 +27,7 @@ public:
     ~AtomicAudioEngine() {
         stopThread(-1);
         atomicSource.release();
+        bleedValue = prevBleedValue = 1.0;
     }
     
 
@@ -115,6 +116,9 @@ private:
     ReadWriteLock statusLock;
     
     float bleedValue;
+    float prevBleedValue;
+    
+    bool readyForPlayback;
     
     ScopedPointer<AtomicAudioSource> atomicSource;
     
