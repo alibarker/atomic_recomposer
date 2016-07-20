@@ -23,7 +23,10 @@ class AtomicAudioEngine :   public AudioAppComponent,
 public:
   
     AtomicAudioEngine(int wivigramWidth, int wivigramHeight);
-    ~AtomicAudioEngine() {stopThread(-1);}
+    ~AtomicAudioEngine() {
+        stopThread(-1);
+        atomicSource.release();
+    }
     
 
     

@@ -131,7 +131,7 @@ MainContentComponent::~MainContentComponent()
     label_num_iterations = 0;
     text_editor_num_iterations = 0;
     audioEngine->shutdownAudio();
-    
+    timeline.release();
 }
 
 void MainContentComponent::mouseDrag(const MouseEvent &event)
