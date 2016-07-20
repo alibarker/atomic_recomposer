@@ -24,8 +24,8 @@ AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
 
 int64 AtomicAudioSource::getTotalLength() const
 {
-    if (engine->book != nullptr)
-        return engine->book->numSamples;
+    if (engine->rtBook.book != nullptr)
+        return engine->rtBook.book->numSamples;
     else
         return 0;
 }
@@ -40,7 +40,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 {
     
     int numSamples = bufferToFill.numSamples;
-    int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->book->numChans);
+    int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
     
     bufferToFill.buffer->clear();
     
@@ -52,15 +52,15 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     }
     
     // current atom status info
-    
-    int numAtoms = 0;
+    int numAtoms = engine->rtBook.realtimeAtoms.size();
+    int numAtomsCurrentlyPlaying = 0;
     int numAtomsTooQuiet = 0;
-    int numAtomsNotSupported = engine->scrubAtoms.size();
+    int numAtomsNotSupported = numAtoms;
 
-    for (int i = 0; i < engine->scrubAtoms.size(); ++i)
+    for (int i = 0; i < numAtoms; ++i)
     {
         
-        AtomicAudioEngine::ScrubAtom* scrubAtom = engine->scrubAtoms.getUnchecked(i);
+        RealtimeAtom* scrubAtom = engine->rtBook.realtimeAtoms.getUnchecked(i);
         MP_Atom_c* atom = scrubAtom->atom;
         
         MP_Support_t* support = atom->support;
@@ -126,7 +126,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 }
             
             
-                numAtoms++;
+                numAtomsCurrentlyPlaying++;
                 numAtomsNotSupported--;
                 
                 /* Generate output for whole buffer */
@@ -157,7 +157,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 
     // update current status
 
-    numAtomsCurrentlyPlaying = numAtoms;
+    numAtomsCurrentlyPlaying = numAtomsCurrentlyPlaying;
     numAtomsCurrentlyTooQuiet = numAtomsTooQuiet;
     numAtomsCurrentlyNotSupported = numAtomsNotSupported;
     

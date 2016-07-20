@@ -156,34 +156,6 @@ void MainContentComponent::paint (Graphics& g)
         
 }
 
-void MainContentComponent::updateWivigram()
-{
-    int mapWidth = audioEngine->map->numCols;
-    int mapHeight = audioEngine->map->numRows;
-    DBG("Width: " << mapWidth << " Height: " << mapHeight);
-    
-    MP_Tfmap_t* column;
-    MP_Real_t val;
-    
-    Image image(Image::RGB, mapWidth, mapHeight, true);
-    
-    
-    for (int i = 0; i < mapWidth; i++ )
-    {
-        column = audioEngine->map->channel[0] + i * mapHeight; /* Seek the column */
-        
-        for (int j = 0; j < mapHeight; j++ )
-        {
-            val = (MP_Real_t) column[j];
-            image.setPixelAt(i, mapHeight - j, Colour::fromHSV (1.0f, 0.0f, 1 - val, 1.0f));
-        }
-    }
-    
-//    wivigram->setImage(image);
-//    wivigram->setImagePlacement(RectanglePlacement(RectanglePlacement::stretchToFit));
-
-}
-
 void MainContentComponent::resized()
 {
     // This is called when the MainContentComponent is resized.

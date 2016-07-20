@@ -41,16 +41,6 @@ void AtomicAudioEngine::setScrubbing(bool isScrubbing)
 }
 
 
-void AtomicAudioEngine::updateWivigram()
-{
-    
-    map = new MP_TF_Map_c(wivigramWidth, wivigramHeight, book->numChans, 0, book->numSamples, 0.0, 0.5);
-    {
-        ScopedReadLock srl(bookLock);
-        book->add_to_tfmap(map, MP_TFMAP_PSEUDO_WIGNER, NULL);
-    }
-    
-}
 
 void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
@@ -154,8 +144,8 @@ void AtomicAudioEngine::decomposition()
         ScopedWriteLock sl(bookLock);
         
         /* Create the book */
-        book = MP_Book_c::create(sig->numChans, sig->numSamples, sig->sampleRate );
-        if ( book == NULL )
+        rtBook.book = MP_Book_c::create(sig->numChans, sig->numSamples, sig->sampleRate );
+        if ( rtBook.book == NULL )
         {
             return;
         }
@@ -163,7 +153,7 @@ void AtomicAudioEngine::decomposition()
         setStatus("Creating mpd Core");
         
         /* Set up the core */
-        mpdCore = MP_Mpd_Core_c::create( sig, book, dict );
+        mpdCore = MP_Mpd_Core_c::create( sig, rtBook.book, dict );
         mpdCore->set_iter_condition( numIterations );
         
         setStatus("Running Matcing Pursuit");
@@ -172,9 +162,9 @@ void AtomicAudioEngine::decomposition()
         
         setStatus("Preparing Book for Playback");
         
-        MP_Signal_c* sig = MP_Signal_c::init(book->numChans, book->numSamples, book->sampleRate);
+        MP_Signal_c* sig = MP_Signal_c::init(rtBook.book->numChans, rtBook.book->numSamples, rtBook.book->sampleRate);
         
-        book->substract_add(NULL, sig, NULL);
+        rtBook.book->substract_add(NULL, sig, NULL);
         
         String filename(String(signal.getParentDirectory().getFullPathName() + "/" +  signal.getFileNameWithoutExtension() + "approx" + signal.getFileExtension()));
         
@@ -190,8 +180,6 @@ void AtomicAudioEngine::decomposition()
         currentlyDecomposing = false;
         
         setStatus("Updating Map");
-        
-        updateWivigram();
         
         setStatus("");
         
@@ -258,9 +246,9 @@ double AtomicAudioEngine::getWindowValue(int atomNumber, int sampleInAtom)
     
     double output;
     
-    if ( isPositiveAndBelow(sampleInAtom, (int) book->atom[atomNumber]->support->len)) {
+    if ( isPositiveAndBelow(sampleInAtom, (int) rtBook.book->atom[atomNumber]->support->len)) {
         
-        int bufferSamplePos = floor(sampleInAtom * scrubAtoms.getUnchecked(atomNumber)->ratio);
+        int bufferSamplePos = floor(sampleInAtom * rtBook.realtimeAtoms[atomNumber]->ratio);
         
         output = windowBuffer->getSample(0, bufferSamplePos);
         
@@ -281,16 +269,16 @@ void AtomicAudioEngine::updateBleed()
 {
     {
         
-        for (int i = 0; i < book->numAtoms; ++i)
+        for (int i = 0; i < rtBook.book->numAtoms; ++i)
         {
-            MP_Atom_c* atom = book->atom[i];
+            MP_Atom_c* atom = rtBook.book->atom[i];
             
-            int originalLength = scrubAtoms[i]->originalSupport.len;
-            int originalStart = scrubAtoms[i]->originalSupport.pos;
+            int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
+            int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
             
             int newLength = originalLength * getBleedValue();
             int newStart = originalStart + round((originalLength - newLength) / 2.0);
-            scrubAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
+            rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
 
             for (int ch = 0; ch < atom->numChans; ++ch)
             {
@@ -299,17 +287,15 @@ void AtomicAudioEngine::updateBleed()
             }
         }
     }
-    updateWivigram();
 }
 
 void AtomicAudioEngine::prepareBook()
 {
-    if (book != nullptr) {
+    if (rtBook.book != nullptr) {
         
         int windowLength = 16384;
         windowBuffer = new AudioBuffer<MP_Real_t>(1, windowLength);
-        scrubAtoms.clear();
-
+        rtBook.realtimeAtoms.clear();
         
         unsigned char windowType = 9;
         double windowOption = 0;
@@ -317,14 +303,14 @@ void AtomicAudioEngine::prepareBook()
         make_window(windowBuffer->getWritePointer(0), windowLength, windowType, windowOption);
 
         
-        for (int i = 0; i < book->numAtoms; ++i)
+        for (int i = 0; i < rtBook.book->numAtoms; ++i)
         {
             
-            MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
+            MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)rtBook.book->atom[i];
             
             // Prepare additional parameters
             
-            ScrubAtom* newAtom = new ScrubAtom;
+            RealtimeAtom* newAtom = new RealtimeAtom;
             int numChannels = gabor_atom->numChans;
 
             newAtom->currentPhase = new double[numChannels];
@@ -345,7 +331,7 @@ void AtomicAudioEngine::prepareBook()
             newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
             newAtom->originalSupport = *gabor_atom->support;
             newAtom->ratio = windowLength / gabor_atom->support->len;
-            scrubAtoms.add(newAtom);
+            rtBook.realtimeAtoms.add(newAtom);
         }
         
         

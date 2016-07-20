@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
+#include "RealtimeBook.h"
 
 class AtomicAudioSource;
 
@@ -81,17 +82,8 @@ public:
 
     void prepareBook();
   
-    struct ScrubAtom {
-        double* currentPhase;
-        double phaseInc;
-        MP_Atom_c* atom;
-        double ratio;
-        MP_Support_t originalSupport;
-    };
+    RealtimeBook rtBook;
     
-    
-    OwnedArray<ScrubAtom> scrubAtoms;
-    ScopedPointer<MP_Book_c> book;
     void updateWivigram();
     ReadWriteLock bookLock;
 

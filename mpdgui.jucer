@@ -5,6 +5,7 @@
               includeBinaryInAppConfig="1">
   <MAINGROUP id="UYTtgu" name="mpdgui">
     <GROUP id="{901DBBEA-8050-86C2-B10D-2BC5C2B9D198}" name="Source">
+      <FILE id="eF2XAY" name="RealtimeBook.h" compile="0" resource="0" file="Source/RealtimeBook.h"/>
       <FILE id="PfLlX8" name="AtomicAudioEngine.cpp" compile="1" resource="0"
             file="Source/AtomicAudioEngine.cpp"/>
       <FILE id="CfDXGf" name="AtomicAudioEngine.h" compile="0" resource="0"

@@ -15,7 +15,7 @@
 #include "AtomicAudioSource.h"
 #include "AtomicAudioEngine.h"
 #include "WivigramComponent.h"
-
+#include "RealtimeBook.h"
 
 //#include "harmonic_atom_plugin.h"
 #define HAVE_FFTW3 1
@@ -50,7 +50,7 @@ public:
         else if (source == audioEngine)
         {
             changeState(Stopped);
-            timeline->updateBook(audioEngine->book);
+            timeline->updateBook(&audioEngine->rtBook);
         }
     }
     

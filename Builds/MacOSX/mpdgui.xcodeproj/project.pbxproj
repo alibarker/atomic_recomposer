@@ -338,6 +338,7 @@
 		3E966642AC5154DC44A8BFF4 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_FileOutputStream.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/files/juce_FileOutputStream.h"; sourceTree = "SOURCE_ROOT"; };
 		3EB540A9C41A990B3C4D5624 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_CriticalSection.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/threads/juce_CriticalSection.h"; sourceTree = "SOURCE_ROOT"; };
 		3ED3C019A2FA15720C444712 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_StringPool.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/text/juce_StringPool.h"; sourceTree = "SOURCE_ROOT"; };
+		3F4A323779877BB87C420039 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RealtimeBook.h; path = ../../Source/RealtimeBook.h; sourceTree = "SOURCE_ROOT"; };
 		3F853A2D95CA545DBD4AEEF7 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_ValueTreeSynchroniser.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_data_structures/values/juce_ValueTreeSynchroniser.h"; sourceTree = "SOURCE_ROOT"; };
 		3F9E6E5EBF8A019C8CCD1AE9 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_DocumentWindow.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_gui_basics/windows/juce_DocumentWindow.h"; sourceTree = "SOURCE_ROOT"; };
 		3FAB9704795D3DE4EA39CBB2 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_mac_CoreGraphicsContext.h"; path = "../../../../../../../SDKs/JUCE/modules/juce_graphics/native/juce_mac_CoreGraphicsContext.h"; sourceTree = "SOURCE_ROOT"; };
@@ -1235,6 +1236,7 @@
 		FFA6C4539B004CC923A110B9 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		FFD1D56BFEF6E17319BE4385 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_StringPool.cpp"; path = "../../../../../../../SDKs/JUCE/modules/juce_core/text/juce_StringPool.cpp"; sourceTree = "SOURCE_ROOT"; };
 		C3A16F839E849FFFAC77B0D9 = {isa = PBXGroup; children = (
+					3F4A323779877BB87C420039,
 					99309B3B3F037B92B2B2D19A,
 					DBAAA311AE0268263CF584FE,
 					9941483512CD1A4463A4D81F,

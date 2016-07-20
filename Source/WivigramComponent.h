@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
+#include "RealtimeBook.h"
 
 
 
@@ -61,18 +62,18 @@ public:
 
     }
     
-    void updateBook(MP_Book_c* newBook)
+    void updateBook(RealtimeBook* newBook)
     {
-        if (newBook != book)
+        if (newBook != rtBook)
         {
             
             deleteAllChildren();
             
-            book = newBook;
+            rtBook = newBook;
             
-            int numAtoms = book->numAtoms;
-            int numSamples = book->numSamples;
-            int numChans = book->numChans;
+            int numAtoms = rtBook->book->numAtoms;
+            int numSamples = rtBook->book->numSamples;
+            int numChans = rtBook->book->numChans;
             
             for (int ch = 0; ch < numChans; ++ch)
             {
@@ -82,7 +83,7 @@ public:
                 for (int i = 0; i < numAtoms; ++i)
                 {
                     
-                    MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)book->atom[i];
+                    MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)rtBook->book->atom[i];
                     float xPos = (gabor_atom->support[ch].pos) / (float) numSamples;
                     float yPos = gabor_atom->freq * 2.0;
                     float width = gabor_atom->support[ch].len / (float) numSamples;
@@ -149,7 +150,7 @@ public:
     
     Array<Array<AtomComponent*>> atomImages;
     
-    MP_Book_c* book;
+    RealtimeBook* rtBook;
     
 };
 
@@ -168,15 +169,15 @@ public:
     {
     }
 
-    void updateBook(MP_Book_c* book)
+    void updateBook(RealtimeBook* rtBook)
     {
         
-        int newWidth = book->numSamples / 100;
+        int newWidth = rtBook->book->numSamples / 100;
         
         setBounds(0, 0, newWidth, height);
         
         wivigram.setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-        wivigram.updateBook(book);
+        wivigram.updateBook(rtBook);
 
 //        cursor.setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
     }
