@@ -35,27 +35,27 @@ public:
 
     void paint (Graphics&) override;
     void resized() override;
+    
     void buttonClicked (Button* buttonThatWasClicked) override;
     void changeListenerCallback(ChangeBroadcaster* source) override;
+    void timerCallback() override;
     
+    void mouseDrag(const MouseEvent& event) override;
+    
+    void sliderValueChanged (Slider* slider) override;
+
     void setNewBook();
  
     int getViewportHeightWithoutBars()
     {
         return timelineViewport->getHeight() - timelineViewport->getScrollBarThickness();
     }
-    
-    
-    void timerCallback() override;
-    
+
     void checkStatus()
     {
         statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
     }
     
-    void mouseDrag(const MouseEvent& event) override;
-    void mouseDown(const MouseEvent &event) override;
-    void sliderValueChanged (Slider* slider) override;
     
 
 private:

@@ -129,11 +129,67 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
-    button_decomp = 0;
-    label_num_iterations = 0;
-    text_editor_num_iterations = 0;
     audioEngine->shutdownAudio();
     timeline.release();
+}
+
+void MainContentComponent::paint (Graphics& g)
+{
+    g.fillAll (Colour (Colours::whitesmoke));
+        
+}
+
+void MainContentComponent::resized()
+{
+    // This is called when the MainContentComponent is resized.
+    // If you add any child components, this is where you should
+    // update their positions.
+}
+
+void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
+{
+    if (buttonThatWasClicked == button_decomp)
+    {
+        decompButtonClicked();
+    }
+    else if (buttonThatWasClicked == buttonSelectDictionary)
+    {
+        
+        FileChooser chooser ("Select a MPTK Dictionary to use...",
+                             File(textEditorDictionary->getText()),
+                             "*.xml");
+        
+        if (chooser.browseForFileToOpen())
+        {
+            File file(chooser.getResult());
+            textEditorDictionary->setText(file.getFullPathName());
+        }
+    }
+    else if (buttonThatWasClicked == buttonSelectSignal)
+    {
+        
+        FileChooser chooser ("Select a signal to use...",
+                             File(textEditorSignal->getText()),
+                             "*.wav");
+        
+        if (chooser.browseForFileToOpen())
+        {
+            File file(chooser.getResult());
+            textEditorSignal->setText(file.getFullPathName());
+        }
+    }
+    else if (buttonThatWasClicked == buttonStart)
+    {
+        playButtonClicked();
+    }
+    else if (buttonThatWasClicked == buttonStop)
+    {
+        stopButtonClicked();
+    }
+    else if (buttonThatWasClicked == buttonScrub)
+    {
+        scrubButtonClicked();
+    }
 }
 
 void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
@@ -155,35 +211,6 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     }
 }
 
-void MainContentComponent::mouseDrag(const MouseEvent &event)
-{
-    if (event.originalComponent == timeline)
-    {
- 
-            float scrubPos = (float) event.x / (float) timeline->getWidth();
-            audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
-    }
-}
-
-void MainContentComponent::mouseDown(const MouseEvent &event)
-{
-}
-
-
-
-void MainContentComponent::paint (Graphics& g)
-{
-    g.fillAll (Colour (Colours::whitesmoke));
-        
-}
-
-void MainContentComponent::resized()
-{
-    // This is called when the MainContentComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
-}
-
 void MainContentComponent::timerCallback()
 {
     float newPos = audioEngine->getTransportPosition();
@@ -193,6 +220,15 @@ void MainContentComponent::timerCallback()
     
 }
 
+void MainContentComponent::mouseDrag(const MouseEvent &event)
+{
+    if (event.originalComponent == timeline)
+    {
+        
+        float scrubPos = (float) event.x / (float) timeline->getWidth();
+        audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
+    }
+}
 
 void MainContentComponent::sliderValueChanged (Slider* slider)
 {
@@ -201,15 +237,49 @@ void MainContentComponent::sliderValueChanged (Slider* slider)
 
 void MainContentComponent::setNewBook()
 {
-    
     int newWidth = audioEngine->rtBook.book->numSamples / 100;
     
     timeline->setBounds(0, 0, newWidth, getViewportHeightWithoutBars());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
     wivigram->updateBook(&audioEngine->rtBook   );
     wivigram->updateWivigram();
-    
-    
+}
+
+void MainContentComponent::addParameters()
+{
+    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
+                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
+                                            1.0));
+}
+
+
+void MainContentComponent::decompButtonClicked()
+{
+    changeState (Decomposing);
+}
+
+void MainContentComponent::playButtonClicked()
+{
+    if (state == Playing)
+        changeState(Pausing);
+    else if (state != Decomposing)
+        changeState (Starting);
+}
+
+void MainContentComponent::stopButtonClicked()
+{
+    if (state == Paused)
+        changeState (Stopped);
+    else
+        changeState (Stopping);
+}
+
+void MainContentComponent::scrubButtonClicked()
+{
+    if (audioEngine->transportSource.isLooping())
+        changeState(Stopped);
+    else
+        changeState(Scrubbing);
 }
 
 void MainContentComponent::changeState (TransportState newState)
@@ -224,7 +294,7 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStop->setEnabled(false);
                 buttonStart->setEnabled(false);
                 buttonScrub->setEnabled(false);
-
+                
             case Decomposing:
                 buttonStop->setEnabled(false);
                 buttonStart->setEnabled(false);
@@ -267,7 +337,7 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStart->setButtonText("Resume");
                 buttonStop->setButtonText("Restart");
                 buttonScrub->setButtonText("Scrub On");
-
+                
                 break;
                 
             case Stopping:                          // [6]
@@ -283,86 +353,4 @@ void MainContentComponent::changeState (TransportState newState)
                 break;
         }
     }
-}
-
-void MainContentComponent::addParameters()
-{
-    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
-                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
-                                            1.0));
-}
-
-void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
-{
-    if (buttonThatWasClicked == button_decomp)
-    {
-        decompButtonClicked();
-    }
-    else if (buttonThatWasClicked == buttonSelectDictionary)
-    {
-        
-        FileChooser chooser ("Select a MPTK Dictionary to use...",
-                             File(textEditorDictionary->getText()),
-                             "*.xml");
-    
-        if (chooser.browseForFileToOpen())
-        {
-            File file(chooser.getResult());
-            textEditorDictionary->setText(file.getFullPathName());
-        }
-    }
-    else if (buttonThatWasClicked == buttonSelectSignal)
-    {
-        
-        FileChooser chooser ("Select a signal to use...",
-                             File(textEditorSignal->getText()),
-                             "*.wav");
-        
-        if (chooser.browseForFileToOpen())
-        {
-            File file(chooser.getResult());
-            textEditorSignal->setText(file.getFullPathName());
-        }
-    }
-    else if (buttonThatWasClicked == buttonStart)
-    {
-        playButtonClicked();
-    }
-    else if (buttonThatWasClicked == buttonStop)
-    {
-        stopButtonClicked();
-    }
-    else if (buttonThatWasClicked == buttonScrub)
-    {
-        scrubButtonClicked();
-    }
-}
-
-void MainContentComponent::decompButtonClicked()
-{
-    changeState (Decomposing);
-}
-
-void MainContentComponent::playButtonClicked()
-{
-    if (state == Playing)
-        changeState(Pausing);
-    else if (state != Decomposing)
-        changeState (Starting);
-}
-
-void MainContentComponent::stopButtonClicked()
-{
-    if (state == Paused)
-        changeState (Stopped);
-    else
-        changeState (Stopping);
-}
-
-void MainContentComponent::scrubButtonClicked()
-{
-    if (audioEngine->transportSource.isLooping())
-        changeState(Stopped);
-    else
-        changeState(Scrubbing);
 }
