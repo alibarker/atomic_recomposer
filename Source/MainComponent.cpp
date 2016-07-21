@@ -89,11 +89,12 @@ MainContentComponent::MainContentComponent()
     timeline = new AtomicTimelineComponent("Timeline", wivigram, timelineHeight);
     timeline->addMouseListener(this, false);
 
-    timelineViewport.setViewedComponent(timeline);
-    timelineViewport.setBounds(1, 60, timelineWidth, timelineHeight);
-    addAndMakeVisible(timelineViewport);
-    timelineViewport.setScrollBarsShown(false, true);
+    timelineViewport = new Viewport();
     
+    timelineViewport->setViewedComponent(timeline);
+    timelineViewport->setBounds(1, 60, timelineWidth, timelineHeight);
+    addAndMakeVisible(timelineViewport);
+    timelineViewport->setScrollBarsShown(false, true);
     
     /* Status */
     
@@ -135,6 +136,25 @@ MainContentComponent::~MainContentComponent()
     timeline.release();
 }
 
+void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (source == &(audioEngine->transportSource))
+    {
+        if (audioEngine->isPlaying())
+            changeState (Playing);
+        else if (state == Stopping || state == Playing)
+            changeState (Stopped);
+        else if (state == Pausing)
+            changeState(Paused);
+    }
+    else if (source == audioEngine)
+    {
+        changeState(Stopped);
+        setNewBook();
+        
+    }
+}
+
 void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
     if (event.originalComponent == timeline)
@@ -162,6 +182,34 @@ void MainContentComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+}
+
+void MainContentComponent::timerCallback()
+{
+    float newPos = audioEngine->getTransportPosition();
+    timeline->setCursorPosition( newPos);
+    
+    checkStatus();
+    
+}
+
+
+void MainContentComponent::sliderValueChanged (Slider* slider)
+{
+    audioEngine->setBleedValue(slider->getValue());
+}
+
+void MainContentComponent::setNewBook()
+{
+    
+    int newWidth = audioEngine->rtBook.book->numSamples / 100;
+    
+    timeline->setBounds(0, 0, newWidth, getViewportHeightWithoutBars());
+    wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
+    wivigram->updateBook(&audioEngine->rtBook   );
+    wivigram->updateWivigram();
+    
+    
 }
 
 void MainContentComponent::changeState (TransportState newState)
@@ -288,4 +336,33 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     {
         scrubButtonClicked();
     }
+}
+
+void MainContentComponent::decompButtonClicked()
+{
+    changeState (Decomposing);
+}
+
+void MainContentComponent::playButtonClicked()
+{
+    if (state == Playing)
+        changeState(Pausing);
+    else if (state != Decomposing)
+        changeState (Starting);
+}
+
+void MainContentComponent::stopButtonClicked()
+{
+    if (state == Paused)
+        changeState (Stopped);
+    else
+        changeState (Stopping);
+}
+
+void MainContentComponent::scrubButtonClicked()
+{
+    if (audioEngine->transportSource.isLooping())
+        changeState(Stopped);
+    else
+        changeState(Scrubbing);
 }

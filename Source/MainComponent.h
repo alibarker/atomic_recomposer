@@ -36,115 +36,37 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     void buttonClicked (Button* buttonThatWasClicked) override;
-    void changeListenerCallback(ChangeBroadcaster* source) override
-    {
-        if (source == &(audioEngine->transportSource))
-        {
-            if (audioEngine->isPlaying())
-                changeState (Playing);
-            else if (state == Stopping || state == Playing)
-                changeState (Stopped);
-            else if (state == Pausing)
-                changeState(Paused);
-        }
-        else if (source == audioEngine)
-        {
-            changeState(Stopped);
-            setNewBook();
-            
-        }
-    }
+    void changeListenerCallback(ChangeBroadcaster* source) override;
     
-    void setNewBook()
-    {
-        
-        int newWidth = audioEngine->rtBook.book->numSamples / 100;
-        
-        timeline->setBounds(0, 0, newWidth, getViewportHeightWithoutBars());
-        wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-        wivigram->updateBook(&audioEngine->rtBook   );
-        wivigram->updateWivigram();
-        
-
-    }
-    
+    void setNewBook();
+ 
     int getViewportHeightWithoutBars()
     {
-        int overallHeight = timelineViewport.getHeight();
-        int sbHeight = timelineViewport.getScrollBarThickness();
-        
-        return overallHeight - sbHeight;
-        
+        return timelineViewport->getHeight() - timelineViewport->getScrollBarThickness();
     }
     
     
-    void timerCallback() override
-    {
-        float newPos = audioEngine->getTransportPosition();
-        timeline->setCursorPosition( newPos);
-        
-        updateParameters();
-        
-        checkStatus();
-        
-    }
-    
-    void updateParameters()
-    {
-        if (audioEngine->getBleedValue() != currentBleedValue)
-        {
-            currentBleedValue = audioEngine->getBleedValue();
-            wivigram->updateWivigram();
-        }
-    }
-    
-    
+    void timerCallback() override;
     
     void checkStatus()
     {
-        String status = audioEngine->getStatus();
-        statusLabel->setText(status, dontSendNotification);
+        statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
     }
     
     void mouseDrag(const MouseEvent& event) override;
     void mouseDown(const MouseEvent &event) override;
-    void sliderValueChanged (Slider* slider) override
-    {
-        audioEngine->setBleedValue(slider->getValue());
-    }
+    void sliderValueChanged (Slider* slider) override;
     
 
 private:
-    ScopedPointer<TextButton> button_decomp;
-    ScopedPointer<TextEditor> text_editor_num_iterations;
-    ScopedPointer<Label> label_num_iterations;
     
-    ScopedPointer<AtomicTimelineComponent> timeline;
-    
-    Viewport timelineViewport;
-    ScopedPointer<WivigramComponent> wivigram;
+    void addParameters();
 
-    MP_TF_Map_c* map;
+    void decompButtonClicked();
+    void playButtonClicked();
+    void stopButtonClicked();
+    void scrubButtonClicked();
     
-    
-    ScopedPointer<Label> statusLabel;
-    
-    ScopedPointer<TextEditor> textEditorDictionary;
-    ScopedPointer<TextEditor> textEditorSignal;
-    ScopedPointer<TextButton> buttonSelectDictionary;
-    ScopedPointer<TextButton> buttonSelectSignal;
-    ScopedPointer<Label> labelSelectDictionary;
-    ScopedPointer<Label> labelSelectSignal;
-
-    ScopedPointer<Slider> sliderBleed;
-    
-    ScopedPointer<TextButton> buttonStart;
-    ScopedPointer<TextButton> buttonStop;
-    ScopedPointer<TextButton> buttonScrub;
-
-    
-   
-
     enum TransportState
     {
         Inactive,
@@ -158,44 +80,35 @@ private:
         Scrubbing
     };
     
-    void changeState (TransportState newState);
-    
-    void decompButtonClicked()
-    {
-        changeState (Decomposing);
-    }
-    
-    void playButtonClicked()
-    {
-        if (state == Playing)
-            changeState(Pausing);
-        else if (state != Decomposing)
-            changeState (Starting);
-    }
-    
-    void stopButtonClicked()
-    {
-        if (state == Paused)
-            changeState (Stopped);
-        else
-            changeState (Stopping);
-    }
-    
-    void scrubButtonClicked()
-    {
-        if (audioEngine->transportSource.isLooping())
-            changeState(Stopped);
-        else
-            changeState(Scrubbing);
-    }
-    
-    float currentBleedValue;
-    void addParameters();
-    OwnedArray<AudioProcessorParameter> parameters;
-    CriticalSection parameterLock;
-    
     TransportState state;
+    void changeState (TransportState newState);
 
+    ScopedPointer<TextButton> button_decomp;
+    ScopedPointer<TextEditor> text_editor_num_iterations;
+    ScopedPointer<Label> label_num_iterations;
+    
+    ScopedPointer<TextEditor> textEditorDictionary;
+    ScopedPointer<TextButton> buttonSelectDictionary;
+    ScopedPointer<Label> labelSelectDictionary;
+
+    ScopedPointer<TextEditor> textEditorSignal;
+    ScopedPointer<TextButton> buttonSelectSignal;
+    ScopedPointer<Label> labelSelectSignal;
+
+    ScopedPointer<TextButton> buttonStart;
+    ScopedPointer<TextButton> buttonStop;
+    ScopedPointer<TextButton> buttonScrub;
+    
+    ScopedPointer<AtomicTimelineComponent> timeline;
+    ScopedPointer<Viewport> timelineViewport;
+    ScopedPointer<WivigramComponent> wivigram;
+    
+    ScopedPointer<Label> statusLabel;
+
+    ScopedPointer<Slider> sliderBleed;
+
+    OwnedArray<AudioProcessorParameter> parameters;
+    
     ScopedPointer<AtomicAudioEngine> audioEngine;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
