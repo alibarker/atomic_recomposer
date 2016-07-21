@@ -45,20 +45,26 @@ public:
     void sliderValueChanged (Slider* slider) override;
 
     void setNewBook();
- 
-    int getViewportHeightWithoutBars()
-    {
-        return timelineViewport->getHeight() - timelineViewport->getScrollBarThickness();
-    }
+    void updateWivigramParametersAndRedraw();
 
     void checkStatus()
     {
         statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
     }
     
+    enum ParameterIndex
+    {
+        pBleedAmount = 0
+    };
     
-
+    float getParameter(ParameterIndex index);
+    void setParameter(ParameterIndex index, float value);
+    
+    void parameterChanged(ParameterIndex index);
+    void initialiseParameters();
 private:
+    
+    
     
     void addParameters();
 
@@ -110,6 +116,11 @@ private:
     OwnedArray<AudioProcessorParameter> parameters;
     
     ScopedPointer<AtomicAudioEngine> audioEngine;
+    //==============================================================================
+    /* Parameters */
+    
+    float currentBleedValue;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

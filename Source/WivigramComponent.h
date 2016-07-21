@@ -37,9 +37,8 @@ public:
                 int originalLength = gabor_atom->support->len;
                 int originalStart = gabor_atom->support->pos;
                 
-                // TODO: BLEED VALUE
                 
-                int atomLength = originalLength;// * bleedValue;
+                int atomLength = originalLength * currentBleedValue;
                 int atomStart = originalStart - (atomLength - originalLength) / 2.0f;
 
                 
@@ -64,8 +63,8 @@ public:
     void updateBook(RealtimeBook* newBook)
     {
     
-        deleteAllChildren();
-        atomImages.clearQuick();
+        removeAllChildren();
+        atomImages.clear();
         
         rtBook = newBook;
         
@@ -92,6 +91,8 @@ public:
         updateWivigram();
         
     }
+    
+    void setBleed(float value) {currentBleedValue = value;}
     
 private:
     
@@ -162,6 +163,8 @@ private:
     Array<Array<AtomComponent*>> atomImages;
     
     RealtimeBook* rtBook;
+    
+    float currentBleedValue;
     
     int numAtoms;
     int numSamples;

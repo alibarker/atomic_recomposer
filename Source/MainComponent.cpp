@@ -65,7 +65,7 @@ MainContentComponent::MainContentComponent()
     sliderBleed->addListener(this);
     sliderBleed->setRange(0.25, 4);
     sliderBleed->setValue(audioEngine->getBleedValue());
-
+    
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
     addAndMakeVisible (button_decomp);
@@ -119,11 +119,12 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
-    /* */
+    /* Misc */
     
     addParameters();
     startTimerHz(30);
     changeState(Inactive);
+    initialiseParameters();
 
 }
 
@@ -232,24 +233,74 @@ void MainContentComponent::mouseDrag(const MouseEvent &event)
 
 void MainContentComponent::sliderValueChanged (Slider* slider)
 {
-    audioEngine->setBleedValue(slider->getValue());
+    setParameter(pBleedAmount, sliderBleed->getValue());
 }
 
 void MainContentComponent::setNewBook()
 {
     int newWidth = audioEngine->rtBook.book->numSamples / 100;
     
-    timeline->setBounds(0, 0, newWidth, getViewportHeightWithoutBars());
+    timeline->setBounds(0, 0, newWidth, timelineViewport->getMaximumVisibleHeight());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-    wivigram->updateBook(&audioEngine->rtBook   );
+    wivigram->updateBook(&audioEngine->rtBook);
     wivigram->updateWivigram();
 }
+
+
 
 void MainContentComponent::addParameters()
 {
     parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
                                             NormalisableRange<float>(0.125, 8, 0.001, 1.0),
                                             1.0));
+    
+//    jassert(parameters.size() == pNumParams);
+}
+
+float MainContentComponent::getParameter(ParameterIndex index)
+{
+    
+    float output;
+    switch (index)
+    {
+        case pBleedAmount:
+            output = currentBleedValue;
+    }
+    
+    return output;
+}
+
+void MainContentComponent::setParameter(ParameterIndex index, float value)
+{
+    switch (index)
+    {
+        case pBleedAmount:
+            currentBleedValue = value;
+    }
+    
+    parameterChanged(index);
+}
+
+void MainContentComponent::parameterChanged(ParameterIndex index)
+{
+    if (wivigram != nullptr) {
+        switch (index)
+        {
+            case pBleedAmount:
+                wivigram->setBleed(getParameter(index));
+                audioEngine->setBleedValue(getParameter(index));
+        }
+    }
+    
+    if (state != Inactive && state != Decomposing)
+    {
+        wivigram->updateWivigram();
+    }
+}
+
+void MainContentComponent::initialiseParameters()
+{
+    setParameter(pBleedAmount, audioEngine->getBleedValue());
 }
 
 

@@ -61,13 +61,6 @@ public:
     
     double getWindowValue(int atomLength, int sampleInAtom);
 
-    void resizeWivigram(int width, int height)
-    {
-        wivigramWidth = width;
-        wivigramHeight = height;
-        updateWivigram();
-    }
-    
     bool getIsPlayingLeftToRight() {return isPlayingLeftRight;}
     
     void setStatus(String val);
@@ -85,7 +78,6 @@ public:
   
     RealtimeBook rtBook;
     
-    void updateWivigram();
     ReadWriteLock bookLock;
 
     ScopedPointer<MP_TF_Map_c> map;
