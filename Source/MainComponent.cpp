@@ -119,9 +119,10 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
-    startTimerHz(60);
-    state = Stopped;
+    currentBleedValue = 1.0;
     
+    startTimerHz(30);
+    changeState(Inactive);
 
 }
 
@@ -171,9 +172,16 @@ void MainContentComponent::changeState (TransportState newState)
         
         switch (state)
         {
+            case Inactive:
+                buttonStop->setEnabled(false);
+                buttonStart->setEnabled(false);
+                buttonScrub->setEnabled(false);
+
             case Decomposing:
-                audioEngine->stopPlaying();
-                audioEngine->setScrubbing(false);
+                buttonStop->setEnabled(false);
+                buttonStart->setEnabled(false);
+                buttonScrub->setEnabled(false);
+                button_decomp->setEnabled(false);
                 audioEngine->triggerDecomposition( File(textEditorDictionary->getText()),
                                                   File(textEditorSignal->getText()),
                                                   text_editor_num_iterations->getText().getIntValue() );
@@ -181,7 +189,11 @@ void MainContentComponent::changeState (TransportState newState)
             case Stopped:                           // [3]
                 buttonStop->setEnabled (false);
                 buttonStop->setButtonText("Stop");
-                buttonStart->setButtonText ("Resume");
+                buttonStart->setButtonText ("Start");
+                buttonStart->setEnabled(true);
+                buttonScrub->setEnabled(true);
+                buttonScrub->setButtonText("Scrub On");
+                button_decomp->setEnabled(true);
                 audioEngine->setTransportPosition(0.0, false);
                 audioEngine->setScrubbing(false);
                 break;
@@ -195,6 +207,7 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStart->setButtonText("Pause");
                 buttonStop->setButtonText("Stop");
                 buttonStop->setEnabled (true);
+                buttonScrub->setButtonText("Scrub On");
                 break;
                 
             case Pausing:
@@ -205,6 +218,8 @@ void MainContentComponent::changeState (TransportState newState)
             case Paused:
                 buttonStart->setButtonText("Resume");
                 buttonStop->setButtonText("Restart");
+                buttonScrub->setButtonText("Scrub On");
+
                 break;
                 
             case Stopping:                          // [6]
@@ -215,30 +230,12 @@ void MainContentComponent::changeState (TransportState newState)
             case Scrubbing:                          // [6]
                 audioEngine->setScrubbing(true);
                 buttonStop->setEnabled(false);
+                buttonStart->setEnabled(false);
+                buttonScrub->setButtonText("Scrub Off");
                 break;
         }
     }
 }
-
-float estimateAnalyticIP(MP_Atom_c* atom1, MP_Atom_c* atom2)
-{
-    float posDiff = fabs(atom2->get_field(MP_POS_PROP, 0) - atom1->get_field(MP_POS_PROP, 0));
-    float freqDiff = fabs(atom2->get_field(MP_FREQ_PROP, 0) - atom1->get_field(MP_FREQ_PROP, 0));
-    
-    float timeSpread1 = atom1->get_field(MP_LEN_PROP, 0);
-    float timeSpread2 = atom2->get_field(MP_LEN_PROP, 0);
-    
-    float averageTimeSpread = (timeSpread1 + timeSpread2) / 2.0;
-    float averageFreqSpread = (1.0/timeSpread1 + 1.0/timeSpread2)/4.0;
-
-    if (posDiff <= averageTimeSpread && fabs(freqDiff) <= averageFreqSpread)
-    {
-        float result = (posDiff - averageTimeSpread) * (fabs(freqDiff) - averageFreqSpread);
-        return result;
-    }
-    return 0.0;
-}
-
 
 void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
 {

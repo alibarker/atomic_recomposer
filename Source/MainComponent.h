@@ -49,7 +49,7 @@ public:
         }
         else if (source == audioEngine)
         {
-//            changeState(Stopped);
+            changeState(Stopped);
             timeline->updateBook(&audioEngine->rtBook);
         }
     }
@@ -62,8 +62,20 @@ public:
     {
         float newPos = audioEngine->getTransportPosition();
         timeline->setCursorPosition( newPos);
+        
+        updateParameters();
+        
         checkStatus();
         
+    }
+    
+    void updateParameters()
+    {
+        if (audioEngine->getBleedValue() != currentBleedValue)
+        {
+            currentBleedValue = audioEngine->getBleedValue();
+            timeline->updateWivigram(currentBleedValue);
+        }
     }
     
     void checkStatus()
@@ -111,6 +123,7 @@ private:
 
     enum TransportState
     {
+        Inactive,
         Decomposing,
         Stopped,
         Starting,
@@ -130,10 +143,10 @@ private:
     
     void playButtonClicked()
     {
-        if (state == Stopped || state == Paused)
-            changeState (Starting);
-        else if (state == Playing)
+        if (state == Playing)
             changeState(Pausing);
+        else if (state != Decomposing)
+            changeState (Starting);
     }
     
     void stopButtonClicked()
@@ -151,6 +164,10 @@ private:
         else
             changeState(Scrubbing);
     }
+    
+    float currentBleedValue;
+    
+    OwnedArray<AudioProcessorParameter>;
 
     
     TransportState state;

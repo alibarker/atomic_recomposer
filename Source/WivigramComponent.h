@@ -62,10 +62,8 @@ public:
 
     }
     
-    void updateWivigram()
+    void updateWivigram(float bleedValue)
     {
-        float currentBleedValue = 1.0; // TODO = updating bleed value
-        
         for (int ch = 0; ch < numChans; ++ch)
         {
             for (int i = 0; i < numAtoms; ++i)
@@ -76,21 +74,20 @@ public:
                 int originalLength = gabor_atom->support->len;
                 int originalStart = gabor_atom->support->pos;
                 
-                int atomLength = originalLength * currentBleedValue;
+                int atomLength = originalLength * bleedValue;
                 int atomStart = originalStart - (atomLength - originalLength) / 2.0f;
-                int atomEnd = atomStart + atomLength;
 
                 
                 
                 float xPos = (atomStart) / (float) numSamples;
-                float yPos = gabor_atom->freq * 2.0;
                 float width = atomLength / (float) numSamples;
                 float height = (float) 80 / ( atomLength) ;
-                
+                float yPos = 1 - gabor_atom->freq * 2.0 - height * 0.5;
+
                 
                 AtomComponent* ac = atomImages[ch][i];
                 
-                ac->setBoundsRelative(xPos, 1 - yPos, width, height);
+                ac->setBoundsRelative(xPos, yPos, width, height);
                 
             }
                 
@@ -101,36 +98,33 @@ public:
     
     void updateBook(RealtimeBook* newBook)
     {
-        if (newBook != rtBook)
+    
+        deleteAllChildren();
+        atomImages.clearQuick();
+        
+        rtBook = newBook;
+        
+        numAtoms = rtBook->book->numAtoms;
+        numSamples = rtBook->book->numSamples;
+        numChans = rtBook->book->numChans;
+        
+        for (int ch = 0; ch < numChans; ++ch)
         {
             
-            deleteAllChildren();
+            Array<AtomComponent*> channelArray;
             
-            rtBook = newBook;
-            
-            numAtoms = rtBook->book->numAtoms;
-            numSamples = rtBook->book->numSamples;
-            numChans = rtBook->book->numChans;
-            
-            for (int ch = 0; ch < numChans; ++ch)
+            for (int i = 0; i < numAtoms; ++i)
             {
-                
-                Array<AtomComponent*> channelArray;
-                
-                for (int i = 0; i < numAtoms; ++i)
-                {
-                    AtomComponent* ac = new AtomComponent(*genericGaborAtom, ch);
-                    addAndMakeVisible(ac);
-                    channelArray.add(ac);
-                }
-                
-                atomImages.add(channelArray);
-                
+                AtomComponent* ac = new AtomComponent(*genericGaborAtom, ch);
+                addAndMakeVisible(ac);
+                channelArray.add(ac);
             }
+            
+            atomImages.add(channelArray);
             
         }
         
-        updateWivigram();
+        updateWivigram(1.0);
         
     }
     
@@ -203,7 +197,12 @@ public:
         
         wivigram.setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
         wivigram.updateBook(rtBook);
-
+        wivigram.updateWivigram(1.0);
+    }
+    
+    void updateWivigram(float bleedValue)
+    {
+        wivigram.updateWivigram(bleedValue);
     }
     
     void setCursorPosition(float newPos)

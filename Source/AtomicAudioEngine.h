@@ -94,6 +94,7 @@ public:
     void updateBleed();
 
 private:
+    
     void smoothScrubbing();
     void decomposition();
     

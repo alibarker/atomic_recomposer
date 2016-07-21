@@ -181,8 +181,6 @@ void AtomicAudioEngine::decomposition()
         // mark as complete
         currentlyDecomposing = false;
         
-        setStatus("Updating Map");
-        
         setStatus("");
         
         sendChangeMessage();
@@ -204,11 +202,13 @@ void AtomicAudioEngine::run()
 
 void AtomicAudioEngine::triggerDecomposition(File dict, File sig, int numIter)
 {
+    
+    stopPlaying();
+    setScrubbing(false);
+
     dictionary = File(dict);
     signal = File(sig);
     numIterations = numIter;
-    
-    transportSource.stop();
     
     currentlyDecomposing = true;
     notify();
