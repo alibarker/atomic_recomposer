@@ -24,10 +24,10 @@ class AtomicAudioEngine :   public AudioAppComponent,
 public:
   
     AtomicAudioEngine(int wivigramWidth, int wivigramHeight);
+    
     ~AtomicAudioEngine() {
         stopThread(-1);
         atomicSource.release();
-        bleedValue = prevBleedValue = 1.0;
     }
     
 

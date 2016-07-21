@@ -4,27 +4,29 @@
               bundleIdentifier="com.yourcompany.mpdgui" jucerVersion="4.2.1"
               includeBinaryInAppConfig="1">
   <MAINGROUP id="UYTtgu" name="mpdgui">
+    <FILE id="VFsETf" name="mptk.h" compile="0" resource="0" file="../../../../../SDKs/mptk/src/libmptk/mptk.h"/>
     <GROUP id="{901DBBEA-8050-86C2-B10D-2BC5C2B9D198}" name="Source">
-      <FILE id="eF2XAY" name="RealtimeBook.h" compile="0" resource="0" file="Source/RealtimeBook.h"/>
-      <FILE id="PfLlX8" name="AtomicAudioEngine.cpp" compile="1" resource="0"
-            file="Source/AtomicAudioEngine.cpp"/>
-      <FILE id="CfDXGf" name="AtomicAudioEngine.h" compile="0" resource="0"
-            file="Source/AtomicAudioEngine.h"/>
-      <FILE id="UmTyQa" name="WavetableSinOscillator.h" compile="0" resource="0"
-            file="Source/WavetableSinOscillator.h"/>
-      <FILE id="eopITd" name="AtomicAudioSource.cpp" compile="1" resource="0"
-            file="Source/AtomicAudioSource.cpp"/>
-      <FILE id="OuFGum" name="AtomicAudioSource.h" compile="0" resource="0"
-            file="Source/AtomicAudioSource.h"/>
-      <FILE id="f0gwjI" name="WivigramComponent.h" compile="0" resource="0"
-            file="Source/WivigramComponent.h"/>
-      <FILE id="JHczlP" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
-      <FILE id="ghSi9F" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="Q5W1vJ" name="DecompositionProgressWindow.h" compile="0"
-            resource="0" file="Source/DecompositionProgressWindow.h"/>
-      <FILE id="VFsETf" name="mptk.h" compile="0" resource="0" file="../../../../../SDKs/mptk/src/libmptk/mptk.h"/>
-      <FILE id="JJmTTo" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <GROUP id="{CE6A398C-F112-D2E0-6B98-E96491C815D9}" name="GUI">
+        <FILE id="f0gwjI" name="WivigramComponent.h" compile="0" resource="0"
+              file="Source/WivigramComponent.h"/>
+        <FILE id="JHczlP" name="MainComponent.cpp" compile="1" resource="0"
+              file="Source/MainComponent.cpp"/>
+        <FILE id="ghSi9F" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+        <FILE id="JJmTTo" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      </GROUP>
+      <GROUP id="{9AD2202C-75E6-4D66-F521-CD3E5FBF435B}" name="Engine">
+        <FILE id="PfLlX8" name="AtomicAudioEngine.cpp" compile="1" resource="0"
+              file="Source/AtomicAudioEngine.cpp"/>
+        <FILE id="CfDXGf" name="AtomicAudioEngine.h" compile="0" resource="0"
+              file="Source/AtomicAudioEngine.h"/>
+        <FILE id="eF2XAY" name="RealtimeBook.h" compile="0" resource="0" file="Source/RealtimeBook.h"/>
+        <FILE id="UmTyQa" name="WavetableSinOscillator.h" compile="0" resource="0"
+              file="Source/WavetableSinOscillator.h"/>
+        <FILE id="eopITd" name="AtomicAudioSource.cpp" compile="1" resource="0"
+              file="Source/AtomicAudioSource.cpp"/>
+        <FILE id="OuFGum" name="AtomicAudioSource.h" compile="0" resource="0"
+              file="Source/AtomicAudioSource.h"/>
+      </GROUP>
     </GROUP>
   </MAINGROUP>
   <MODULES>
