@@ -50,12 +50,32 @@ public:
         else if (source == audioEngine)
         {
             changeState(Stopped);
-            timeline->updateBook(&audioEngine->rtBook);
+            setNewBook();
+            
         }
     }
     
-    void updateWivigram();
+    void setNewBook()
+    {
+        
+        int newWidth = audioEngine->rtBook.book->numSamples / 100;
+        
+        timeline->setBounds(0, 0, newWidth, getViewportHeightWithoutBars());
+        wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
+        wivigram->updateBook(&audioEngine->rtBook   );
+        wivigram->updateWivigram();
+        
+
+    }
     
+    int getViewportHeightWithoutBars()
+    {
+        int overallHeight = timelineViewport.getHeight();
+        int sbHeight = timelineViewport.getScrollBarThickness();
+        
+        return overallHeight - sbHeight;
+        
+    }
     
     
     void timerCallback() override
@@ -74,9 +94,11 @@ public:
         if (audioEngine->getBleedValue() != currentBleedValue)
         {
             currentBleedValue = audioEngine->getBleedValue();
-            timeline->updateWivigram(currentBleedValue);
+            wivigram->updateWivigram();
         }
     }
+    
+    
     
     void checkStatus()
     {
@@ -90,6 +112,7 @@ public:
     {
         audioEngine->setBleedValue(slider->getValue());
     }
+    
 
 private:
     ScopedPointer<TextButton> button_decomp;
@@ -99,7 +122,8 @@ private:
     ScopedPointer<AtomicTimelineComponent> timeline;
     
     Viewport timelineViewport;
-    
+    ScopedPointer<WivigramComponent> wivigram;
+
     MP_TF_Map_c* map;
     
     
@@ -166,9 +190,9 @@ private:
     }
     
     float currentBleedValue;
-    
-    OwnedArray<AudioProcessorParameter>;
-
+    void addParameters();
+    OwnedArray<AudioProcessorParameter> parameters;
+    CriticalSection parameterLock;
     
     TransportState state;
 

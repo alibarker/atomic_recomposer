@@ -15,14 +15,14 @@ MainContentComponent::MainContentComponent()
 {
     setSize (1000, 600);
     
-    int wiviWidth = getWidth() - 1;
-    int wiviHeight = getHeight() - 61;
+    int timelineWidth = getWidth() - 1;
+    int timelineHeight = getHeight() - 61;
 
     File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
     File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
 
     
-    audioEngine = new AtomicAudioEngine(wiviWidth, wiviHeight);
+    audioEngine = new AtomicAudioEngine(0, 0);
     audioEngine->setAudioChannels (0, 2);
     audioEngine->addChangeListener(this);
     audioEngine->transportSource.addChangeListener(this);
@@ -82,27 +82,26 @@ MainContentComponent::MainContentComponent()
     text_editor_num_iterations->setBounds(70, 35, 50, 20);
     addAndMakeVisible (text_editor_num_iterations);
     
-    timeline = new AtomicTimelineComponent("Timeline", wiviWidth, wiviHeight);
+    /* Timeline/Wivigram Viewport*/
     
-    addAndMakeVisible(timeline);
-    
+    wivigram = new WivigramComponent("Wivigram");
+    wivigram->setInterceptsMouseClicks(false, false);
+    timeline = new AtomicTimelineComponent("Timeline", wivigram, timelineHeight);
+    timeline->addMouseListener(this, false);
+
     timelineViewport.setViewedComponent(timeline);
-    timelineViewport.setBounds(1, 60, wiviWidth, wiviHeight);
+    timelineViewport.setBounds(1, 60, timelineWidth, timelineHeight);
     addAndMakeVisible(timelineViewport);
     timelineViewport.setScrollBarsShown(false, true);
-
-    timeline->addMouseListener(this, false);
     
-//    cursor = new Cursor();
-//    addAndMakeVisible(cursor);
-//    cursor->setBounds(wivigram->getBounds());
-//    cursor->addMouseListener(this, true);
-
+    
+    /* Status */
+    
     statusLabel = new Label();
     statusLabel->setBounds(160, 1, 340, 20);
     addAndMakeVisible(statusLabel);
     
-    /* Start/Stop Buttons */
+    /* Start/Stop/Scrub Buttons */
     
     buttonStart = new TextButton("Start");
     buttonStart->setBounds(160, 1, 100, 20);
@@ -119,8 +118,9 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
-    currentBleedValue = 1.0;
+    /* */
     
+    addParameters();
     startTimerHz(30);
     changeState(Inactive);
 
@@ -235,6 +235,13 @@ void MainContentComponent::changeState (TransportState newState)
                 break;
         }
     }
+}
+
+void MainContentComponent::addParameters()
+{
+    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
+                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
+                                            1.0));
 }
 
 void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)

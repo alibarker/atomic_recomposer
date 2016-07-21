@@ -59,10 +59,9 @@ public:
     {
         drawGenericGaborAtom();
         setBufferedToImage(true);
-
     }
     
-    void updateWivigram(float bleedValue)
+    void updateWivigram()
     {
         for (int ch = 0; ch < numChans; ++ch)
         {
@@ -74,7 +73,9 @@ public:
                 int originalLength = gabor_atom->support->len;
                 int originalStart = gabor_atom->support->pos;
                 
-                int atomLength = originalLength * bleedValue;
+                // TODO: BLEED VALUE
+                
+                int atomLength = originalLength;// * bleedValue;
                 int atomStart = originalStart - (atomLength - originalLength) / 2.0f;
 
                 
@@ -124,7 +125,7 @@ public:
             
         }
         
-        updateWivigram(1.0);
+        updateWivigram();
         
     }
     
@@ -176,34 +177,32 @@ public:
 class AtomicTimelineComponent : public Component
 {
 public:
-    AtomicTimelineComponent(const String& componentName, int width, int newHeight)
-                                : Component (componentName) , wivigram("WiviView"), height(newHeight)
+    AtomicTimelineComponent(const String& componentName, WivigramComponent* wivi, int newHeight)
+                                : Component (componentName) , wivigram(wivi), height(newHeight)
     {
         addAndMakeVisible(wivigram);
-//        addAndMakeVisible(cursor);
-        wivigram.setInterceptsMouseClicks(false, false);
     }
 
     void resized() override
     {
     }
 
-    void updateBook(RealtimeBook* rtBook)
-    {
-        
-        int newWidth = rtBook->book->numSamples / 100;
-        
-        setBounds(0, 0, newWidth, height);
-        
-        wivigram.setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-        wivigram.updateBook(rtBook);
-        wivigram.updateWivigram(1.0);
-    }
+//    void updateBook(RealtimeBook* rtBook)
+//    {
+//        
+//        int newWidth = rtBook->book->numSamples / 100;
+//        
+//        setBounds(0, 0, newWidth, height);
+//        
+//        wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
+//        wivigram->updateBook(rtBook);
+//        wivigram.updateWivigram();
+//    }
     
-    void updateWivigram(float bleedValue)
-    {
-        wivigram.updateWivigram(bleedValue);
-    }
+//    void updateWivigram()
+//    {
+//        wivigram.updateWivigram();
+//    }
     
     void setCursorPosition(float newPos)
     {
@@ -220,7 +219,7 @@ public:
     }
     
 private:
-    WivigramComponent wivigram;
+    WivigramComponent* wivigram;
 
     
     int scrubPos;
