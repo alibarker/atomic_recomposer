@@ -14,16 +14,23 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
 #include "RealtimeBook.h"
+#include "Parameters.h"
 
 class AtomicAudioSource;
 
+enum
+{
+    pBleedAmount = 0
+};
+
 class AtomicAudioEngine :   public AudioAppComponent,
                             public ChangeBroadcaster,
-                            public Thread
+                            public Thread,
+                            public ActionBroadcaster
 {
 public:
   
-    AtomicAudioEngine(int wivigramWidth, int wivigramHeight);
+    AtomicAudioEngine(ChangeListener* cl);
     
     ~AtomicAudioEngine() {
         stopThread(-1);
@@ -50,8 +57,8 @@ public:
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
-    float getBleedValue() { return bleedValue; }
-    void setBleedValue(float value) { bleedValue = value;}
+//    float getBleedValue() { return bleedValue; }
+//    void setBleedValue(float value) { bleedValue = value;}
 
     virtual void releaseResources() override {}
     AudioTransportSource transportSource;
@@ -84,9 +91,18 @@ public:
 
     ScopedPointer<AudioBuffer<MP_Real_t>> windowBuffer;
     void updateBleed();
+    
+    // Parameters
+    
+    Parameter* getParameter(int index) { return parameters[index]; }
+    
 
+    
 private:
     
+    OwnedArray<Parameter> parameters;
+    void initialiseParameters();
+
     void smoothScrubbing();
     void decomposition();
     
@@ -100,9 +116,6 @@ private:
     File signal;
     int numIterations;
     
-    int wivigramHeight;
-    int wivigramWidth;
-    
     bool currentlyDecomposing = false;
     
     String status;
@@ -114,9 +127,8 @@ private:
     bool readyForPlayback;
     
     ScopedPointer<AtomicAudioSource> atomicSource;
-    
 
-    
+    ChangeListener* paramListener;
     
 };
 

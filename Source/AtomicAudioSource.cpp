@@ -44,7 +44,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
     bufferToFill.buffer->clear();
     
-    float currentBleedValue = engine->getBleedValue();
+    float currentBleedValue = *dynamic_cast<FloatParameter*> (engine->getParameter(pBleedAmount));
     
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
@@ -154,9 +154,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 
     // update current status
 
-    numAtomsCurrentlyPlaying = numAtomsCurrentlyPlaying;
-    numAtomsCurrentlyTooQuiet = numAtomsTooQuiet;
-    numAtomsCurrentlyNotSupported = numAtomsNotSupported;
+    currentlyPlaying = numAtomsCurrentlyPlaying;
+    currentlyTooQuiet = numAtomsTooQuiet;
+    currentlyNotSupported = numAtomsNotSupported;
     
     // update position as necessary
     

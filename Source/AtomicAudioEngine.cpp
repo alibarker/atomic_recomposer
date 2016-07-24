@@ -11,18 +11,15 @@
 #include "AtomicAudioEngine.h"
 #include "AtomicAudioSource.h"
 
-AtomicAudioEngine::AtomicAudioEngine(int wiviWidth, int wiviHeight) : Thread("Decomposition")
+AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
+                            : Thread("Decomposition"), paramListener(cl)
 {
-    wivigramWidth = wiviWidth;
-    wivigramHeight = wiviHeight;
-    
-    
-    bleedValue = 1.0;
     targetPosition = -1;
-    
     isPlayingLeftRight = true;
     
     startThread();
+    
+    initialiseParameters();
     
 }
 
@@ -49,8 +46,10 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     {
         ScopedReadLock srl (bookLock);
         transportSource.getNextAudioBlock(bufferToFill);
-        
         smoothScrubbing();
+        
+        String status = "Currently Playing: " + String(atomicSource->currentlyPlaying);
+        sendActionMessage(status);
     }
     
 }
@@ -88,10 +87,9 @@ void AtomicAudioEngine::smoothScrubbing()
 }
 
 
-void AtomicAudioEngine::setStatus(String val)
+void AtomicAudioEngine::setStatus(String status)
 {
-    ScopedWriteLock srl (statusLock);
-    status = val;
+    sendActionMessage(status);
 }
 
 void AtomicAudioEngine::decomposition()
@@ -269,30 +267,30 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
     
 }
 
-void AtomicAudioEngine::updateBleed()
-{
-    
-    for (int i = 0; i < rtBook.book->numAtoms; ++i)
-    {
-        MP_Atom_c* atom = rtBook.book->atom[i];
-        
-        int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
-        int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
-        
-        int newLength = originalLength * getBleedValue();
-        int newStart = originalStart + round((originalLength - newLength) / 2.0);
-        rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
-
-        for (int ch = 0; ch < atom->numChans; ++ch)
-        {
-            atom->support[ch].len = newLength;
-            atom->support[ch].pos = newStart;
-        }
-    }
-    
-    sendChangeMessage();
-
-}
+//void AtomicAudioEngine::updateBleed()
+//{
+//    
+//    for (int i = 0; i < rtBook.book->numAtoms; ++i)
+//    {
+//        MP_Atom_c* atom = rtBook.book->atom[i];
+//        
+//        int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
+//        int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
+//        
+//        int newLength = originalLength * getBleedValue();
+//        int newStart = originalStart + round((originalLength - newLength) / 2.0);
+//        rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
+//
+//        for (int ch = 0; ch < atom->numChans; ++ch)
+//        {
+//            atom->support[ch].len = newLength;
+//            atom->support[ch].pos = newStart;
+//        }
+//    }
+//    
+//    sendChangeMessage();
+//
+//}
 
 void AtomicAudioEngine::prepareBook()
 {
@@ -344,3 +342,13 @@ void AtomicAudioEngine::prepareBook()
     
     
 }
+
+
+void AtomicAudioEngine::initialiseParameters()
+{
+    FloatParameter* bleed = new FloatParameter ( String("Bleed Amount"),
+                                                          NormalisableRange<float>(0.25, 4.0, 0.01, 1.0),
+                                                          1.0 );
+    parameters.add(bleed);
+}
+

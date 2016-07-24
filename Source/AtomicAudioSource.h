@@ -48,9 +48,9 @@ public:
     
     ScopedPointer<WavetableSinOscillator> osc;
     
-    int numAtomsCurrentlyPlaying;
-    int numAtomsCurrentlyTooQuiet;
-    int numAtomsCurrentlyNotSupported;
+    int currentlyPlaying;
+    int currentlyTooQuiet;
+    int currentlyNotSupported;
     
     void updateBleed();
     

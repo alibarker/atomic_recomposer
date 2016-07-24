@@ -15,6 +15,8 @@
         <FILE id="JJmTTo" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       </GROUP>
       <GROUP id="{9AD2202C-75E6-4D66-F521-CD3E5FBF435B}" name="Engine">
+        <FILE id="p6ZvtG" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
+        <FILE id="WsJ3i0" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
         <FILE id="PfLlX8" name="AtomicAudioEngine.cpp" compile="1" resource="0"
               file="Source/AtomicAudioEngine.cpp"/>
         <FILE id="CfDXGf" name="AtomicAudioEngine.h" compile="0" resource="0"

@@ -13,19 +13,20 @@
 //==============================================================================
 MainContentComponent::MainContentComponent()
 {
-    setSize (1000, 600);
+    setSize (1000, 650);
     
     int timelineWidth = getWidth() - 1;
-    int timelineHeight = getHeight() - 61;
+    int timelineHeight = getHeight() - 101;
 
     File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
     File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
 
     
-    audioEngine = new AtomicAudioEngine(0, 0);
+    audioEngine = new AtomicAudioEngine(this);
     audioEngine->setAudioChannels (0, 2);
     audioEngine->addChangeListener(this);
     audioEngine->transportSource.addChangeListener(this);
+    audioEngine->addActionListener(this);
     
     textEditorDictionary = new TextEditor("Dictionary");
     textEditorDictionary->setBounds(649, 1, 300, 25);
@@ -57,14 +58,18 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(labelSelectSignal);
     labelSelectSignal->setBounds(600, 26, 49, 25);
     
+    /* Bleed */
+    
+    FloatParameter* bleedParam = dynamic_cast<FloatParameter*>(audioEngine->getParameter(0));
+    
     sliderBleed = new Slider("Bleed Amount");
     sliderBleed->setBounds(160, 35, 340, 20);
     addAndMakeVisible(sliderBleed);
     sliderBleed->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
     sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, 50, 20);
     sliderBleed->addListener(this);
-    sliderBleed->setRange(0.25, 4);
-    sliderBleed->setValue(audioEngine->getBleedValue());
+    sliderBleed->setRange(bleedParam->range.start, bleedParam->range.end);
+    sliderBleed->setValue(*bleedParam);
     
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
@@ -99,7 +104,7 @@ MainContentComponent::MainContentComponent()
     /* Status */
     
     statusLabel = new Label();
-    statusLabel->setBounds(160, 1, 340, 20);
+    statusLabel->setBounds(1, 600, 300, 30);
     addAndMakeVisible(statusLabel);
     
     /* Start/Stop/Scrub Buttons */
@@ -121,10 +126,10 @@ MainContentComponent::MainContentComponent()
     
     /* Misc */
     
-    addParameters();
+//    addParameters();
     startTimerHz(30);
     changeState(Inactive);
-    initialiseParameters();
+//    initialiseParameters();
 
 }
 
@@ -208,7 +213,6 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     {
         changeState(Stopped);
         setNewBook();
-        
     }
 }
 
@@ -217,15 +221,18 @@ void MainContentComponent::timerCallback()
     float newPos = audioEngine->getTransportPosition();
     timeline->setCursorPosition( newPos);
     
-    checkStatus();
-    
 }
+
+void MainContentComponent::actionListenerCallback (const String& message)
+{
+    statusLabel->setText(message, dontSendNotification);
+}
+
 
 void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
     if (event.originalComponent == timeline)
     {
-        
         float scrubPos = (float) event.x / (float) timeline->getWidth();
         audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
     }
@@ -233,7 +240,13 @@ void MainContentComponent::mouseDrag(const MouseEvent &event)
 
 void MainContentComponent::sliderValueChanged (Slider* slider)
 {
-    setParameter(pBleedAmount, sliderBleed->getValue());
+    if (slider == sliderBleed)
+    {
+        float value = sliderBleed->getValue();
+        *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)) = value;
+        wivigram->setBleed(value);
+        wivigram->updateWivigram();
+    }
 }
 
 void MainContentComponent::setNewBook()
@@ -243,65 +256,27 @@ void MainContentComponent::setNewBook()
     timeline->setBounds(0, 0, newWidth, timelineViewport->getMaximumVisibleHeight());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
     wivigram->updateBook(&audioEngine->rtBook);
+    wivigram->setBleed( *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)));
     wivigram->updateWivigram();
 }
 
 
 
-void MainContentComponent::addParameters()
-{
-    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
-                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
-                                            1.0));
-    
-//    jassert(parameters.size() == pNumParams);
-}
+//void MainContentComponent::addParameters()
+//{
+//    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
+//                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
+//                                            1.0));
+//    
+////    jassert(parameters.size() == pNumParams);
+//}
 
-float MainContentComponent::getParameter(ParameterIndex index)
-{
-    
-    float output;
-    switch (index)
-    {
-        case pBleedAmount:
-            output = currentBleedValue;
-    }
-    
-    return output;
-}
 
-void MainContentComponent::setParameter(ParameterIndex index, float value)
-{
-    switch (index)
-    {
-        case pBleedAmount:
-            currentBleedValue = value;
-    }
-    
-    parameterChanged(index);
-}
 
-void MainContentComponent::parameterChanged(ParameterIndex index)
-{
-    if (wivigram != nullptr) {
-        switch (index)
-        {
-            case pBleedAmount:
-                wivigram->setBleed(getParameter(index));
-                audioEngine->setBleedValue(getParameter(index));
-        }
-    }
-    
-    if (state != Inactive && state != Decomposing)
-    {
-        wivigram->updateWivigram();
-    }
-}
-
-void MainContentComponent::initialiseParameters()
-{
-    setParameter(pBleedAmount, audioEngine->getBleedValue());
-}
+//void MainContentComponent::initialiseParameters()
+//{
+//    setParameter(pBleedAmount, audioEngine->getBleedValue());
+//}
 
 
 void MainContentComponent::decompButtonClicked()

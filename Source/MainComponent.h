@@ -26,7 +26,12 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainContentComponent : public ButtonListener, public Component, public ChangeListener, public Timer, public Slider::Listener
+class MainContentComponent :    public ButtonListener,
+                                public Component,
+                                public ChangeListener,
+                                public Timer,
+                                public Slider::Listener,
+                                public ActionListener
 {
 public:
     //==============================================================================
@@ -39,7 +44,8 @@ public:
     void buttonClicked (Button* buttonThatWasClicked) override;
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
-    
+    void actionListenerCallback (const String& message) override;
+
     void mouseDrag(const MouseEvent& event) override;
     
     void sliderValueChanged (Slider* slider) override;
@@ -52,15 +58,12 @@ public:
         statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
     }
     
-    enum ParameterIndex
-    {
-        pBleedAmount = 0
-    };
+
     
-    float getParameter(ParameterIndex index);
-    void setParameter(ParameterIndex index, float value);
+    Value getParameter(const Identifier& parameterId);
+    void setParameter(const Identifier& parameterId, Value value);
     
-    void parameterChanged(ParameterIndex index);
+//    void parameterChanged(ParameterIndex index);
     void initialiseParameters();
 private:
     
@@ -119,7 +122,6 @@ private:
     //==============================================================================
     /* Parameters */
     
-    float currentBleedValue;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
