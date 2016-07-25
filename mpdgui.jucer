@@ -7,6 +7,10 @@
     <FILE id="VFsETf" name="mptk.h" compile="0" resource="0" file="../../../../../SDKs/mptk/src/libmptk/mptk.h"/>
     <GROUP id="{901DBBEA-8050-86C2-B10D-2BC5C2B9D198}" name="Source">
       <GROUP id="{CE6A398C-F112-D2E0-6B98-E96491C815D9}" name="GUI">
+        <FILE id="cXiZxl" name="ParametersWindow.cpp" compile="1" resource="0"
+              file="Source/ParametersWindow.cpp"/>
+        <FILE id="s3EmLP" name="ParametersWindow.h" compile="0" resource="0"
+              file="Source/ParametersWindow.h"/>
         <FILE id="f0gwjI" name="WivigramComponent.h" compile="0" resource="0"
               file="Source/WivigramComponent.h"/>
         <FILE id="JHczlP" name="MainComponent.cpp" compile="1" resource="0"

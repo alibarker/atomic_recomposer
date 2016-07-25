@@ -220,7 +220,7 @@ void MainContentComponent::timerCallback()
 {
     float newPos = audioEngine->getTransportPosition();
     timeline->setCursorPosition( newPos);
-    
+
 }
 
 void MainContentComponent::actionListenerCallback (const String& message)
@@ -245,7 +245,6 @@ void MainContentComponent::sliderValueChanged (Slider* slider)
         float value = sliderBleed->getValue();
         *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)) = value;
         wivigram->setBleed(value);
-        wivigram->updateWivigram();
     }
 }
 
@@ -255,9 +254,8 @@ void MainContentComponent::setNewBook()
     
     timeline->setBounds(0, 0, newWidth, timelineViewport->getMaximumVisibleHeight());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-    wivigram->updateBook(&audioEngine->rtBook);
     wivigram->setBleed( *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)));
-    wivigram->updateWivigram();
+    wivigram->updateBook(&audioEngine->rtBook);
 }
 
 

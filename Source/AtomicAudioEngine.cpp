@@ -267,30 +267,6 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
     
 }
 
-//void AtomicAudioEngine::updateBleed()
-//{
-//    
-//    for (int i = 0; i < rtBook.book->numAtoms; ++i)
-//    {
-//        MP_Atom_c* atom = rtBook.book->atom[i];
-//        
-//        int originalLength = rtBook.realtimeAtoms[i]->originalSupport.len;
-//        int originalStart = rtBook.realtimeAtoms[i]->originalSupport.pos;
-//        
-//        int newLength = originalLength * getBleedValue();
-//        int newStart = originalStart + round((originalLength - newLength) / 2.0);
-//        rtBook.realtimeAtoms[i]->ratio = windowBuffer->getNumSamples() / newLength;
-//
-//        for (int ch = 0; ch < atom->numChans; ++ch)
-//        {
-//            atom->support[ch].len = newLength;
-//            atom->support[ch].pos = newStart;
-//        }
-//    }
-//    
-//    sendChangeMessage();
-//
-//}
 
 void AtomicAudioEngine::prepareBook()
 {
