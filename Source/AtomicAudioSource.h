@@ -55,9 +55,7 @@ public:
     void updateBleed();
     
 private:
-    
-//    MP_Book_c* book;
-    
+            
     ScopedPointer<MP_Real_t> tempBuffer;
     double getWindowValues(int atomLength, int startSample);
 

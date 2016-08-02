@@ -124,6 +124,23 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
+    /* Parameters Window */
+    
+    paramComponent = new ParametersWindow(audioEngine);
+    Rectangle<int> area (0, 0, 300, 500);
+    
+    parametersWindow = new DocumentWindow("Parameters Window", Colour(0, 0, 0), 0);
+    
+    RectanglePlacement placement (RectanglePlacement::xRight
+                                  | RectanglePlacement::yTop
+                                  | RectanglePlacement::doNotResize);
+    
+    Rectangle<int> result (placement.appliedTo (area, Desktop::getInstance().getDisplays()
+                                                .getMainDisplay().userArea.reduced (20)));
+    parametersWindow->setBounds(result);
+    parametersWindow->setVisible(true);
+    parametersWindow->setContentOwned(paramComponent, false);
+    
     /* Misc */
     
 //    addParameters();
@@ -213,6 +230,11 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     {
         changeState(Stopped);
         setNewBook();
+    }
+    else if (source == audioEngine->getParameter(pBleedAmount))
+    {
+        float value = *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount));
+        wivigram->setBleed(value);
     }
 }
 

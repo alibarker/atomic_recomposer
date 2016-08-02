@@ -19,9 +19,15 @@ AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
     
     startThread();
     
-    initialiseParameters();
+    initialiseParameters(cl);
     
 }
+
+AtomicAudioEngine::~AtomicAudioEngine() {
+    stopThread(-1);
+    atomicSource.release();
+}
+
 
 bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(); }
 
@@ -320,11 +326,20 @@ void AtomicAudioEngine::prepareBook()
 }
 
 
-void AtomicAudioEngine::initialiseParameters()
+void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
 {
+    
+    /* Bleed */
     FloatParameter* bleed = new FloatParameter ( String("Bleed Amount"),
                                                           NormalisableRange<float>(0.25, 4.0, 0.01, 1.0),
                                                           1.0 );
+    bleed->addChangeListener(cl);
     parameters.add(bleed);
+    
+    /* Atom limit */
+    
+    IntParameter* atomLimit = new IntParameter(String("Atom Playback Limit"), Range<int>(10, 500), 200) ;
+    atomLimit->addChangeListener(cl);
+    parameters.add(atomLimit);
 }
 

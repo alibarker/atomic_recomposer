@@ -13,12 +13,12 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-class Parameter
+class Parameter : public ChangeBroadcaster
 {
 public:
     Parameter(const String& name) : paramName(name) {}
     virtual ~Parameter() {}
-    void notify() { }
+    void notify() { sendChangeMessage(); }
     
     
 private:
@@ -41,7 +41,7 @@ private:
 class IntParameter : public Parameter
 {
 public:
-    IntParameter(String& name, Range<int> range, float defaultValue) : Parameter(name), range(range), value(defaultValue) {}
+    IntParameter(const String& name, Range<int> range, float defaultValue) : Parameter(name), range(range), value(defaultValue) {}
     
     Range<int> range;
     operator float() const noexcept             { return value; }

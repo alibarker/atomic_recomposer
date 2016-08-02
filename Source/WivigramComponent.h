@@ -25,7 +25,6 @@ public:
         setBufferedToImage(true);
     }
     
-
     
     void updateWivigram()
     {
@@ -64,8 +63,8 @@ public:
             float atomFreqPos = 1 - gabor_atom->freq * 2 - 0.5 * atomHeight;
             
             // pixels
-            float xPos = atomStart / (float) numSamples * getWidth();
-            float width = atomLength / (float) numSamples * getWidth();
+            float xPos = (atomStart / (float) numSamples) * getWidth();
+            float width = (atomLength / (float) numSamples) * getWidth();
             float height = atomHeight * getHeight();
             float yPos = atomFreqPos * getHeight();
             
@@ -110,7 +109,7 @@ private:
     
     double wignerVille(double t, double f)
     {
-        /* This function is copied from gabor_atom_plugin.cpp */
+        /* This function is taken from gabor_atom_plugin.cpp */
         
         double x = t - 0.5;
         double y = f - 0.5;
@@ -141,7 +140,7 @@ private:
     class AtomComponent : public Component
     {
     public:
-        AtomComponent(Image& image, int channel, AffineTransform* transform) : channelNumber(channel), transformGlobal(transform)
+        AtomComponent(Image& image, int channel, AffineTransform* transform) : transformGlobal(transform), channelNumber(channel)
         {
             alphaImage.setImage(image);
             if (channel ==0 )

@@ -20,7 +20,8 @@ class AtomicAudioSource;
 
 enum
 {
-    pBleedAmount = 0
+    pBleedAmount = 0,
+    pAtomLimit
 };
 
 class AtomicAudioEngine :   public AudioAppComponent,
@@ -32,11 +33,7 @@ public:
   
     AtomicAudioEngine(ChangeListener* cl);
     
-    ~AtomicAudioEngine() {
-        stopThread(-1);
-        atomicSource.release();
-    }
-    
+    ~AtomicAudioEngine();
 
     
     void startPlaying() { transportSource.start(); }
@@ -101,7 +98,7 @@ public:
 private:
     
     OwnedArray<Parameter> parameters;
-    void initialiseParameters();
+    void initialiseParameters(ChangeListener* cl);
 
     void smoothScrubbing();
     void decomposition();

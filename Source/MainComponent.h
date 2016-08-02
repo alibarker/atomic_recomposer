@@ -16,6 +16,7 @@
 #include "AtomicAudioEngine.h"
 #include "WivigramComponent.h"
 #include "RealtimeBook.h"
+#include "ParametersWindow.h"
 
 //#include "harmonic_atom_plugin.h"
 #define HAVE_FFTW3 1
@@ -112,11 +113,12 @@ private:
     ScopedPointer<Viewport> timelineViewport;
     ScopedPointer<WivigramComponent> wivigram;
     
+    ScopedPointer<DocumentWindow> parametersWindow;
+    ScopedPointer<ParametersWindow> paramComponent;
+
     ScopedPointer<Label> statusLabel;
 
     ScopedPointer<Slider> sliderBleed;
-
-    OwnedArray<AudioProcessorParameter> parameters;
     
     ScopedPointer<AtomicAudioEngine> audioEngine;
     //==============================================================================
