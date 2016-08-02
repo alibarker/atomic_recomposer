@@ -69,6 +69,7 @@ private:
     bool isCurrentlyRunning;
     
     float currentBleedValue;
+    float currentSampleRate;
     
     
 };

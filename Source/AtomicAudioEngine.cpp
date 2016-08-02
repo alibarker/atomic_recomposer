@@ -314,8 +314,8 @@ void AtomicAudioEngine::prepareBook()
             
             newAtom->atom = gabor_atom;
             newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
-            newAtom->originalSupport = *gabor_atom->support;
-            newAtom->ratio = windowLength / gabor_atom->support->len;
+//            newAtom->originalSupport = *gabor_atom->support;
+//            newAtom->ratio = windowLength / gabor_atom->support->len;
             rtBook.realtimeAtoms.add(newAtom);
         }
         
@@ -328,10 +328,10 @@ void AtomicAudioEngine::prepareBook()
 
 void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
 {
-    
+    float maxBleedAmount = 8;
     /* Bleed */
     FloatParameter* bleed = new FloatParameter ( String("Bleed Amount"),
-                                                          NormalisableRange<float>(0.25, 4.0, 0.01, 1.0),
+                                                          NormalisableRange<float>(1.0f/maxBleedAmount, maxBleedAmount, 0.01, 1.0),
                                                           1.0 );
     bleed->addChangeListener(cl);
     parameters.add(bleed);

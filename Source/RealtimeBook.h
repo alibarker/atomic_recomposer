@@ -20,8 +20,8 @@ struct RealtimeAtom
     double* currentPhase;
     double phaseInc;
     MP_Atom_c* atom;
-    double ratio;
-    MP_Support_t originalSupport;
+//    double ratio;
+//    MP_Support_t originalSupport;
 };
 
 struct RealtimeBook

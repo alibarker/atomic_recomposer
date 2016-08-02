@@ -1,4 +1,4 @@
-/*
+    /*
   ==============================================================================
 
     AtomicAudioSource.cpp
@@ -41,7 +41,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
     int numSamples = bufferToFill.numSamples;
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
-    
     bufferToFill.buffer->clear();
     
     float currentBleedValue = *dynamic_cast<FloatParameter*> (engine->getParameter(pBleedAmount));
@@ -52,6 +51,8 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     int numAtomsCurrentlyPlaying = 0;
     int numAtomsTooQuiet = 0;
     int numAtomsNotSupported = numAtoms;
+    
+    float shortAtomLimit = 10.f/1000.0f * currentSampleRate;
 
     for (int i = 0; i < numAtoms; ++i)
     {
@@ -65,6 +66,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         int originalStart = support->pos;
         
         int atomLength = originalLength * currentBleedValue;
+        if (atomLength < shortAtomLimit)
+            atomLength = shortAtomLimit;
+    
         int atomStart = originalStart - (atomLength - originalLength) / 2.0f;
         int atomEnd = atomStart + atomLength;
         
@@ -178,6 +182,7 @@ void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
                             double sampleRate)
 {
     tempBuffer = new MP_Real_t[16834];
+    currentSampleRate = sampleRate;
 }
 
 
