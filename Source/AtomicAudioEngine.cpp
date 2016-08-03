@@ -29,18 +29,28 @@ AtomicAudioEngine::~AtomicAudioEngine() {
 }
 
 
-bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isLooping(); }
+bool AtomicAudioEngine::isCurrentlyScrubbing() { return atomicSource->isScrubbing(); }
 
 
 void AtomicAudioEngine::setScrubbing(bool isScrubbing)
 {
     if (atomicSource != nullptr) {
-        atomicSource->setLooping(isScrubbing);
+        atomicSource->setScrubbing(isScrubbing);
         if (isScrubbing) {
             targetPosition = -1;
             transportSource.start();
         }
     }
+}
+
+void AtomicAudioEngine::setReverse(bool shouldReverse)
+{
+    atomicSource->setReversing(shouldReverse);
+}
+
+void AtomicAudioEngine::setLooping(bool isLooping, int startSample, int endSample)
+{
+    atomicSource->setLooping(isLooping);
 }
 
 
@@ -258,11 +268,11 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom, int s
     
     if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
         
-        float ratio = (float) windowBuffers[shapeValue]->getNumSamples() / atomLength;
+        float ratio = (float) windowBuffers.getUnchecked(shapeValue)->getNumSamples() / atomLength;
         
         int bufferSamplePos = floor(sampleInAtom * ratio);
         
-        output = windowBuffers[shapeValue]->getSample(0, bufferSamplePos);
+        output = *windowBuffers.getUnchecked(shapeValue)->getReadPointer(0, bufferSamplePos);
         
     }
     else

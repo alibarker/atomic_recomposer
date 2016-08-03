@@ -60,16 +60,16 @@ MainContentComponent::MainContentComponent()
     
     /* Bleed */
     
-    FloatParameter* bleedParam = dynamic_cast<FloatParameter*>(audioEngine->getParameter(0));
-    
-    sliderBleed = new Slider("Bleed Amount");
-    sliderBleed->setBounds(160, 35, 340, 20);
-    addAndMakeVisible(sliderBleed);
-    sliderBleed->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
-    sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, 50, 20);
-    sliderBleed->addListener(this);
-    sliderBleed->setRange(bleedParam->range.start, bleedParam->range.end);
-    sliderBleed->setValue(*bleedParam);
+//    FloatParameter* bleedParam = dynamic_cast<FloatParameter*>(audioEngine->getParameter(0));
+//    
+//    sliderBleed = new Slider("Bleed Amount");
+//    sliderBleed->setBounds(160, 35, 340, 20);
+//    addAndMakeVisible(sliderBleed);
+//    sliderBleed->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+//    sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, 50, 20);
+//    sliderBleed->addListener(this);
+//    sliderBleed->setRange(bleedParam->range.start, bleedParam->range.end);
+//    sliderBleed->setValue(*bleedParam);
     
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
@@ -109,26 +109,37 @@ MainContentComponent::MainContentComponent()
     
     /* Transport Buttons */
     
+    int transportButtonXPos = 160;
+    int transportButtonYPos = 1;
+    int transportButtonWidth = 60;
+    int transportButtonHeight = 20;
+    
     buttonStart = new TextButton("Start");
-    buttonStart->setBounds(160, 1, 100, 20);
+    buttonStart->setBounds(transportButtonXPos, transportButtonYPos, transportButtonWidth, transportButtonHeight);
     addAndMakeVisible(buttonStart);
     buttonStart->addListener(this);
 
     buttonStop = new TextButton("Stop");
-    buttonStop->setBounds(262, 1, 100, 20);
+    buttonStop->setBounds(transportButtonXPos + 1 + transportButtonWidth, transportButtonYPos, transportButtonWidth, transportButtonHeight);
     addAndMakeVisible(buttonStop);
     buttonStop->addListener(this);
     
     buttonScrub = new TextButton("Scrub");
-    buttonScrub->setBounds(364, 1, 100, 20);
+    buttonScrub->setBounds(transportButtonXPos + 2 * (1 + transportButtonWidth), transportButtonYPos, transportButtonWidth, transportButtonHeight);
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
     
     buttonLoopOn = new TextButton("Loop On");
-    buttonScrub->setBounds(468, 1, 100, 20);
+    buttonLoopOn->setBounds(transportButtonXPos + 3 * (1 + transportButtonWidth), transportButtonYPos, transportButtonWidth, transportButtonHeight);
     addAndMakeVisible(buttonLoopOn);
     buttonLoopOn->addListener(this);
+    buttonLoopOn->setClickingTogglesState(true);
 
+    buttonReverse = new TextButton("Reverse");
+    buttonReverse->setBounds(transportButtonXPos + 4 * (1 + transportButtonWidth), transportButtonYPos, transportButtonWidth, transportButtonHeight);
+    addAndMakeVisible(buttonReverse);
+    buttonReverse->addListener(this);
+    buttonReverse->setClickingTogglesState(true);
     
     /* Parameters Window */
     
@@ -223,13 +234,17 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     {
         loopButtonClicked();
     }
+    else if (buttonThatWasClicked == buttonReverse)
+    {
+        reverseButtonClicked();
+    }
 }
 
 void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (source == &(audioEngine->transportSource))
     {
-        if (audioEngine->isPlaying())
+        if (audioEngine->isPlaying() && state != Scrubbing)
             changeState (Playing);
         else if (state == Stopping || state == Playing)
             changeState (Stopped);
@@ -249,8 +264,11 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     }
     else if (source == audioEngine->getParameter(pBleedAmount))
     {
+        
+        
         float value = *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount));
         wivigram->setBleed(value);
+        
     }
 }
 
@@ -328,7 +346,30 @@ void MainContentComponent::scrubButtonClicked()
 
 void MainContentComponent::loopButtonClicked()
 {
+    audioEngine->setLooping(buttonLoopOn->getToggleState(), 0, 0);
+    if (buttonLoopOn->getToggleState())
+    {
+        buttonLoopOn->setButtonText("Loop Off");
+    }
+    else
+    {
+        buttonLoopOn->setButtonText("Loop On");
+    }
     
+}
+
+void MainContentComponent::reverseButtonClicked()
+{
+    audioEngine->setReverse(buttonReverse->getToggleState());
+    if (buttonReverse->getToggleState())
+    {
+        buttonReverse->setButtonText("Forward");
+    }
+    else
+    {
+        buttonReverse->setButtonText("Reverse");
+    }
+
 }
 
 
@@ -344,6 +385,7 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStop->setEnabled(false);
                 buttonStart->setEnabled(false);
                 buttonScrub->setEnabled(false);
+                buttonLoopOn->setEnabled(false);
                 break;
                 
             case Decomposing:
@@ -351,6 +393,8 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStart->setEnabled(false);
                 buttonScrub->setEnabled(false);
                 button_decomp->setEnabled(false);
+                buttonLoopOn->setEnabled(false);
+
                 audioEngine->triggerDecomposition( File(textEditorDictionary->getText()),
                                                   File(textEditorSignal->getText()),
                                                   text_editor_num_iterations->getText().getIntValue() );
@@ -361,6 +405,8 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStart->setButtonText ("Start");
                 buttonStart->setEnabled(true);
                 buttonScrub->setEnabled(true);
+                buttonLoopOn->setEnabled(true);
+
                 buttonScrub->setButtonText("Scrub On");
                 button_decomp->setEnabled(true);
                 audioEngine->setTransportPosition(0.0, false);

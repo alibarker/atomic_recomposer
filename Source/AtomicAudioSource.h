@@ -33,9 +33,13 @@ public:
     int64 getTotalLength() const override;
     
     /** Returns true if this source is actually playing in a loop. */
-    bool isLooping() const override {return isCurrentlyScrubbing;}
+    bool isLooping() const override {return isCurrentlyLooping;}
+    virtual void setLooping (bool shouldLoop) override { isCurrentlyLooping = shouldLoop; }
     
-    virtual void setLooping (bool shouldLoop) override;
+    bool isScrubbing() const { return isCurrentlyScrubbing; }
+    void setScrubbing (bool shouldScrub) { isCurrentlyScrubbing = shouldScrub; }
+
+    void setReversing(bool shouldReverse) { isCurrentlyReversing = shouldReverse; }
     
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override;
@@ -69,6 +73,8 @@ private:
     
     bool isCurrentlyScrubbing;
     bool isCurrentlyRunning;
+    bool isCurrentlyLooping;
+    bool isCurrentlyReversing;
     
     float currentBleedValue;
     float currentSampleRate;

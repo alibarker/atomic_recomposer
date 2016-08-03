@@ -19,7 +19,7 @@
 class WivigramComponent :public Component
 {
 public:
-    WivigramComponent(const String& name) : Component(name)
+    WivigramComponent(const String& name) : Component(name), numAtoms(0)
     {
         drawGenericGaborAtom();
         setBufferedToImage(true);
@@ -80,8 +80,7 @@ public:
             atomImages.add(ac);
         }
         
-        
-        
+
         updateWivigram();
         
     }
@@ -91,20 +90,17 @@ public:
         if (value != currentBleedValue)
         {
             currentBleedValue = value;
-            
+
                 for (int i = 0; i < numAtoms; ++i)
                 {
-                    
-                    //                MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)rtBook->book->atom[i];
-                                    AtomComponent* ac = atomImages[i];
-                    
+                    AtomComponent* ac = atomImages[i];
                     ac->transformModifier = AffineTransform::scale(currentBleedValue, 1/currentBleedValue,
                                                                    ac->centre.getX(), ac->centre.getY() );
-                    
-                    
-                    
+//
+//                    
+//                    
                 }
-                
+//
                         repaint();
         }
     }

@@ -16,9 +16,13 @@ AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
     osc = new WavetableSinOscillator(4096);
     isCurrentlyScrubbing = false;
     isCurrentlyRunning = false;
+    isCurrentlyLooping = false;
+    isCurrentlyReversing = false;
     
     prevReadPosition = 0;
     nextReadPosition = 0;
+    
+    
     
 }
 
@@ -28,11 +32,6 @@ int64 AtomicAudioSource::getTotalLength() const
         return engine->rtBook.book->numSamples;
     else
         return 0;
-}
-
-void AtomicAudioSource::setLooping(bool shouldLoop)
-{
-    isCurrentlyScrubbing = shouldLoop;
 }
 
 
@@ -83,6 +82,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 /* generate window */
                             
                 double window[bufferToFill.numSamples];
+                
                 int start = max((int) (atomStart - nextReadPosition), 0);
                 int end = max((int) (nextReadPosition - atomEnd), numSamples);
 
@@ -115,7 +115,13 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                     {
                         double value;
                        
-                        int pos = nextReadPosition - atomStart + n;
+                        int pos;
+                        
+                        if (isCurrentlyReversing)
+                            pos = nextReadPosition - atomStart - n;
+                        else
+                            pos = nextReadPosition - atomStart + n;
+
                         
                         if (pos < 0 || pos >= atomLength)
                             value = 0.0;
@@ -170,11 +176,21 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     currentlyNotSupported = numAtomsNotSupported;
     
     // update position as necessary
-    
-    if (!isCurrentlyScrubbing)
-        nextReadPosition += bufferToFill.numSamples;
 
     prevReadPosition = nextReadPosition;
+
+    if (!isCurrentlyScrubbing && !isCurrentlyReversing)
+        nextReadPosition += bufferToFill.numSamples;
+    else if(!isCurrentlyScrubbing && isCurrentlyReversing)
+        nextReadPosition -= bufferToFill.numSamples;
+
+    
+    if (nextReadPosition >= getTotalLength() && isCurrentlyLooping)
+    {
+        setNextReadPosition(0);
+    }
+    
+    
     
 }
 

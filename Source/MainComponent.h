@@ -77,6 +77,8 @@ private:
     void stopButtonClicked();
     void scrubButtonClicked();
     void loopButtonClicked();
+    void reverseButtonClicked();
+    
     enum TransportState
     {
         Inactive,
@@ -109,6 +111,7 @@ private:
     ScopedPointer<TextButton> buttonStop;
     ScopedPointer<TextButton> buttonScrub;
     ScopedPointer<TextButton> buttonLoopOn;
+    ScopedPointer<TextButton> buttonReverse;
     
     ScopedPointer<AtomicTimelineComponent> timeline;
     ScopedPointer<Viewport> timelineViewport;

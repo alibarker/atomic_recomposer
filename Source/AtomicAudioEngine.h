@@ -42,7 +42,10 @@ public:
     void stopPlaying() { transportSource.stop(); }
     
     bool isPlaying() {return transportSource.isPlaying(); }
-        
+    
+    void setLooping(bool isLooping, int startSample, int endSample);
+    void setReverse(bool shouldReverse);
+    
     void setScrubbing(bool status);
     bool isCurrentlyScrubbing();
 
