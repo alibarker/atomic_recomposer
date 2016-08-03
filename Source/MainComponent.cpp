@@ -107,7 +107,7 @@ MainContentComponent::MainContentComponent()
     statusLabel->setBounds(1, 600, 300, 30);
     addAndMakeVisible(statusLabel);
     
-    /* Start/Stop/Scrub Buttons */
+    /* Transport Buttons */
     
     buttonStart = new TextButton("Start");
     buttonStart->setBounds(160, 1, 100, 20);
@@ -123,6 +123,12 @@ MainContentComponent::MainContentComponent()
     buttonScrub->setBounds(364, 1, 100, 20);
     addAndMakeVisible(buttonScrub);
     buttonScrub->addListener(this);
+    
+    buttonLoopOn = new TextButton("Loop On");
+    buttonScrub->setBounds(468, 1, 100, 20);
+    addAndMakeVisible(buttonLoopOn);
+    buttonLoopOn->addListener(this);
+
     
     /* Parameters Window */
     
@@ -213,6 +219,10 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     {
         scrubButtonClicked();
     }
+    else if (buttonThatWasClicked == buttonLoopOn)
+    {
+        loopButtonClicked();
+    }
 }
 
 void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
@@ -228,8 +238,14 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     }
     else if (source == audioEngine)
     {
-        changeState(Stopped);
-        setNewBook();
+        if (audioEngine->isDecomposing()) {
+            wivigram->clearBook();
+        }
+        else
+        {
+            changeState(Stopped);
+            setNewBook();
+        }
     }
     else if (source == audioEngine->getParameter(pBleedAmount))
     {
@@ -281,24 +297,6 @@ void MainContentComponent::setNewBook()
 }
 
 
-
-//void MainContentComponent::addParameters()
-//{
-//    parameters.add(new AudioParameterFloat ("bleed", "Bleed Value",
-//                                            NormalisableRange<float>(0.125, 8, 0.001, 1.0),
-//                                            1.0));
-//    
-////    jassert(parameters.size() == pNumParams);
-//}
-
-
-
-//void MainContentComponent::initialiseParameters()
-//{
-//    setParameter(pBleedAmount, audioEngine->getBleedValue());
-//}
-
-
 void MainContentComponent::decompButtonClicked()
 {
     changeState (Decomposing);
@@ -322,11 +320,17 @@ void MainContentComponent::stopButtonClicked()
 
 void MainContentComponent::scrubButtonClicked()
 {
-    if (audioEngine->transportSource.isLooping())
+    if (audioEngine->isCurrentlyScrubbing())
         changeState(Stopped);
     else
         changeState(Scrubbing);
 }
+
+void MainContentComponent::loopButtonClicked()
+{
+    
+}
+
 
 void MainContentComponent::changeState (TransportState newState)
 {
@@ -340,6 +344,7 @@ void MainContentComponent::changeState (TransportState newState)
                 buttonStop->setEnabled(false);
                 buttonStart->setEnabled(false);
                 buttonScrub->setEnabled(false);
+                break;
                 
             case Decomposing:
                 buttonStop->setEnabled(false);

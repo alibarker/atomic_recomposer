@@ -16,7 +16,7 @@ AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
 {
     targetPosition = -1;
     isPlayingLeftRight = true;
-    
+    currentlyDecomposing = false;
     startThread();
     
     initialiseParameters(cl);
@@ -67,10 +67,10 @@ void AtomicAudioEngine::smoothScrubbing()
     {
         int currentPos = transportSource.getNextReadPosition();
         int nextPos = targetPosition;
-        
+        int jumpAmount = expBufferSize * *dynamic_cast<FloatParameter*>(getParameter(pMaxScrubSpeed));
         if (targetPosition > currentPos)
         {
-            nextPos = currentPos + scrubSmoothAmount;
+            nextPos = currentPos + jumpAmount;
             if (nextPos >= targetPosition)
             {
                 nextPos = targetPosition;
@@ -79,7 +79,7 @@ void AtomicAudioEngine::smoothScrubbing()
         }
         else if (targetPosition <= currentPos)
         {
-            nextPos = currentPos - scrubSmoothAmount;
+            nextPos = currentPos - jumpAmount;
             if (nextPos <= targetPosition)
             {
                 nextPos = targetPosition;
@@ -100,7 +100,7 @@ void AtomicAudioEngine::setStatus(String status)
 
 void AtomicAudioEngine::decomposition()
 {
-    
+    sendChangeMessage();
     
     setStatus(String("Beginning Decomposition"));
     
@@ -195,12 +195,14 @@ void AtomicAudioEngine::decomposition()
 void AtomicAudioEngine::run()
 {
     while (!threadShouldExit()) {
+        wait(1000);
+
+        
         if (currentlyDecomposing) {
             decomposition();
             
         }
         
-        wait(1000);
     }
 }
 
@@ -213,8 +215,8 @@ void AtomicAudioEngine::triggerDecomposition(File dict, File sig, int numIter)
     dictionary = File(dict);
     signal = File(sig);
     numIterations = numIter;
-    
     currentlyDecomposing = true;
+    
     notify();
     
 }
@@ -247,18 +249,20 @@ float AtomicAudioEngine::getTransportPosition()
     return 0.0;
 }
 
-double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
+double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom, int shapeValue)
 {
     
     double output;
     
+    jassert(isPositiveAndBelow(shapeValue, windowBuffers.size()));
+    
     if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
         
-        float ratio = (float) windowBuffer->getNumSamples() / atomLength;
+        float ratio = (float) windowBuffers[shapeValue]->getNumSamples() / atomLength;
         
         int bufferSamplePos = floor(sampleInAtom * ratio);
         
-        output = windowBuffer->getSample(0, bufferSamplePos);
+        output = windowBuffers[shapeValue]->getSample(0, bufferSamplePos);
         
     }
     else
@@ -274,19 +278,48 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
 }
 
 
+void AtomicAudioEngine::makeOtherWindows(int windowLength)
+{
+    
+    for (int i = 1; i < 10; ++i) {
+        AudioBuffer<double> *gammaWindow = new AudioBuffer<double>;
+        gammaWindow->setSize(1, windowLength);
+        make_window(gammaWindow->getWritePointer(0), windowLength, DSP_GAMMA_WIN, i + 0.001);
+        
+        windowBuffers.add(gammaWindow);
+    }
+
+    AudioBuffer<double> *gaussWindow = new AudioBuffer<double>;
+    gaussWindow->setSize(1, windowLength);
+    make_window(gaussWindow->getWritePointer(0), windowLength, DSP_GAUSS_WIN, 0.02);
+    windowBuffers.add(gaussWindow);
+
+    
+
+}
+
 void AtomicAudioEngine::prepareBook()
 {
     if (rtBook.book != nullptr) {
         
-        int windowLength = 16384;
-        windowBuffer = new AudioBuffer<MP_Real_t>(1, windowLength);
+//        windowBuffer = new AudioBuffer<MP_Real_t>(1, windowLength);
+//
+//        unsigned char windowType = 9;
+//        double windowOption = 0;
+//
+//        make_window(windowBuffer->getWritePointer(0), windowLength, windowType, windowOption);
+
+        
+        
         rtBook.realtimeAtoms.clear();
         
-        unsigned char windowType = 9;
-        double windowOption = 0;
-
-        make_window(windowBuffer->getWritePointer(0), windowLength, windowType, windowOption);
-
+        
+        windowLength = pow(2, 15);
+        makeOtherWindows(windowLength);
+        
+        
+        
+        
         
         for (int i = 0; i < rtBook.book->numAtoms; ++i)
         {
@@ -328,18 +361,37 @@ void AtomicAudioEngine::prepareBook()
 
 void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
 {
-    float maxBleedAmount = 8;
     /* Bleed */
+    
+    float maxBleedAmount = 8;
     FloatParameter* bleed = new FloatParameter ( String("Bleed Amount"),
                                                           NormalisableRange<float>(1.0f/maxBleedAmount, maxBleedAmount, 0.01, 1.0),
                                                           1.0 );
     bleed->addChangeListener(cl);
     parameters.add(bleed);
     
+    
     /* Atom limit */
     
     IntParameter* atomLimit = new IntParameter(String("Atom Playback Limit"), Range<int>(10, 500), 200) ;
     atomLimit->addChangeListener(cl);
     parameters.add(atomLimit);
+    
+    
+    /* Max Scrubbing Speed */
+    
+    FloatParameter* maxScrubSpeed = new FloatParameter ( String("Max. Scrubbing Speed"),
+                                                NormalisableRange<float>(1, 10, 0.01, 1.0),
+                                                5.0 );
+    maxScrubSpeed->addChangeListener(cl);
+    parameters.add(maxScrubSpeed);
+    
+    
+    /* Window Shape */
+    
+    IntParameter* windowShape = new IntParameter (String("Window Shape"), Range<int>(0, 9), 9);
+    windowShape->addChangeListener(cl);
+    parameters.add(windowShape);
+    
 }
 

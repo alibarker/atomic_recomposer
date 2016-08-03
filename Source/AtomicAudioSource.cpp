@@ -88,12 +88,12 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 
                 if (isCurrentlyScrubbing)
                 {
-                    double currentWindowAmp = engine->getWindowValue( atomLength,  nextReadPosition - atomStart);
+                    double currentWindowAmp = getScaledWindowValue( atomLength,  nextReadPosition - atomStart);
                     
                     if (nextReadPosition != prevReadPosition)
                     {
                         
-                        double prevWindowAmp = engine->getWindowValue( atomLength,  prevReadPosition - atomStart);
+                        double prevWindowAmp = getScaledWindowValue( atomLength,  prevReadPosition - atomStart);
                         
                         for (int n = 0; n < numSamples; ++n)
                         {
@@ -120,7 +120,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                         if (pos < 0 || pos >= atomLength)
                             value = 0.0;
                         else
-                            value = engine->getWindowValue( atomLength,  pos);
+                            value = getScaledWindowValue( atomLength,  pos);
                         
                         window[n] = value;
                     }
@@ -177,6 +177,14 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     prevReadPosition = nextReadPosition;
     
 }
+
+double AtomicAudioSource::getScaledWindowValue(int atomLength, int pos)
+{
+    int shape = *dynamic_cast<IntParameter*>(engine->getParameter(pWindowShape));
+    
+    return engine->getWindowValue(atomLength, pos, shape);
+}
+
 
 void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
                             double sampleRate)

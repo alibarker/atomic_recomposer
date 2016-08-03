@@ -21,7 +21,9 @@ class AtomicAudioSource;
 enum
 {
     pBleedAmount = 0,
-    pAtomLimit
+    pAtomLimit,
+    pMaxScrubSpeed,
+    pWindowShape
 };
 
 class AtomicAudioEngine :   public AudioAppComponent,
@@ -40,7 +42,7 @@ public:
     void stopPlaying() { transportSource.stop(); }
     
     bool isPlaying() {return transportSource.isPlaying(); }
-    
+        
     void setScrubbing(bool status);
     bool isCurrentlyScrubbing();
 
@@ -48,14 +50,12 @@ public:
                                 double sampleRate) override
     {
         transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
-        scrubSmoothAmount = samplesPerBlockExpected;
+        expBufferSize = samplesPerBlockExpected;
     }
     
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
-//    float getBleedValue() { return bleedValue; }
-//    void setBleedValue(float value) { bleedValue = value;}
 
     virtual void releaseResources() override {}
     AudioTransportSource transportSource;
@@ -63,7 +63,7 @@ public:
     void setTransportPosition(float posAsPercentage, bool isCurrentlyDragging);
     float getTransportPosition();
     
-    double getWindowValue(int atomLength, int sampleInAtom);
+    double getWindowValue(int atomLength, int sampleInAtom, int shapeValue);
 
     bool getIsPlayingLeftToRight() {return isPlayingLeftRight;}
     
@@ -86,7 +86,6 @@ public:
 
     ScopedPointer<MP_TF_Map_c> map;
 
-    ScopedPointer<AudioBuffer<MP_Real_t>> windowBuffer;
     void updateBleed();
     
     // Parameters
@@ -96,6 +95,11 @@ public:
 
     
 private:
+    
+    void makeOtherWindows(int windowLength);
+    OwnedArray<AudioBuffer<double>> windowBuffers;
+    int windowLength;
+
     
     OwnedArray<Parameter> parameters;
     void initialiseParameters(ChangeListener* cl);
@@ -113,14 +117,14 @@ private:
     File signal;
     int numIterations;
     
-    bool currentlyDecomposing = false;
+    bool currentlyDecomposing;
     
     String status;
     ReadWriteLock statusLock;
     
     float bleedValue;
     float prevBleedValue;
-    
+    int expBufferSize;
     bool readyForPlayback;
     
     ScopedPointer<AtomicAudioSource> atomicSource;

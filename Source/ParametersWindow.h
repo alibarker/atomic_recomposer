@@ -27,10 +27,12 @@ public:
 private:
     ScopedPointer<Slider> sliderBleed;
     ScopedPointer<Slider> sliderAtomsLimit;
-    
+    ScopedPointer<Slider> sliderWindowShape;
+
     FloatParameter* paramBleed;
     IntParameter* paramAtomLimit;
-
+    IntParameter* paramWindowShape;
+    
     AtomicAudioEngine* engine;
     
 };

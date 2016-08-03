@@ -30,18 +30,22 @@ public:
     {
     }
     
+    void clearBook()
+    {
+        removeAllChildren();
+    }
+    
     
     void updateBook(RealtimeBook* newBook)
     {
     
-        removeAllChildren();
         
         rtBook = newBook;
         
         numAtoms = rtBook->book->numAtoms;
         numSamples = rtBook->book->numSamples;
         numChans = rtBook->book->numChans;
-        
+    
 
         
         for (int i = 0; i < numAtoms; ++i)
