@@ -14,7 +14,6 @@
 AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
                             : Thread("Decomposition"), paramListener(cl), sampleCount(0)
 {
-    targetPosition = -1;
     isPlayingLeftRight = true;
     currentlyDecomposing = false;
     startThread();
@@ -23,7 +22,6 @@ AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
     
     windowLength = pow(2, 15);
     makeOtherWindows(windowLength);
-
     
 }
 
@@ -41,8 +39,8 @@ void AtomicAudioEngine::setScrubbing(bool isScrubbing)
 {
     if (atomicSource != nullptr) {
         atomicSource->setScrubbing(isScrubbing);
-        if (isScrubbing) {
-            targetPosition = -1;
+        if (isScrubbing)
+        {
             transportSource.start();
         }
     }
@@ -82,7 +80,6 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         
         ScopedReadLock srl (bookLock);
         transportSource.getNextAudioBlock(bufferToFill);
-        smoothScrubbing();
         
         String status = "Currently Playing: " + String(atomicSource->currentlyPlaying);
         sendActionMessage(status);
@@ -92,37 +89,6 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
 }
 
-void AtomicAudioEngine::smoothScrubbing()
-{
-    // smooth scrubbing
-    if (targetPosition > 0)
-    {
-        int currentPos = transportSource.getNextReadPosition();
-        int nextPos = targetPosition;
-        int jumpAmount = expBufferSize * getParameter(pMaxScrubSpeed);
-        if (targetPosition > currentPos)
-        {
-            nextPos = currentPos + jumpAmount;
-            if (nextPos >= targetPosition)
-            {
-                nextPos = targetPosition;
-                targetPosition = -1;
-            }
-        }
-        else if (targetPosition <= currentPos)
-        {
-            nextPos = currentPos - jumpAmount;
-            if (nextPos <= targetPosition)
-            {
-                nextPos = targetPosition;
-                targetPosition = -1;
-            }
-            
-        }
-        
-        transportSource.setNextReadPosition(nextPos);
-    }
-}
 
 
 void AtomicAudioEngine::setStatus(String status)
@@ -259,15 +225,19 @@ void AtomicAudioEngine::triggerDecomposition(File dict, File sig, int numIter)
 void AtomicAudioEngine::setTransportPosition(float posAsPercentage, bool isCurrentlyDragging)
 {
     int length = transportSource.getTotalLength();
-    if (length != 0) {
+    
+    if (length != 0)
+    {
         int64 newPos = min ( (int) round(posAsPercentage*length), length -1) ;
         
         if (isCurrentlyDragging)
-            targetPosition = newPos;
+        {
+            atomicSource->targetPosition = newPos;
+        }
         else
         {
             transportSource.setNextReadPosition( newPos );
-            targetPosition = -1;
+            atomicSource->targetPosition = -1;
         }
     }
 }

@@ -34,9 +34,42 @@ int64 AtomicAudioSource::getTotalLength() const
         return 0;
 }
 
+void AtomicAudioSource::smoothScrubbing()
+{
+    // smooth scrubbing
+    if (targetPosition > 0)
+    {
+        int currentPos = nextReadPosition;
+        int nextPos = targetPosition;
+        int jumpAmount = expBufferSize * engine->getParameter(pMaxScrubSpeed);
+        if (targetPosition > currentPos)
+        {
+            nextPos = currentPos + jumpAmount;
+            if (nextPos >= targetPosition)
+            {
+                nextPos = targetPosition;
+                targetPosition = -1;
+            }
+        }
+        else if (targetPosition <= currentPos)
+        {
+            nextPos = currentPos - jumpAmount;
+            if (nextPos <= targetPosition)
+            {
+                nextPos = targetPosition;
+                targetPosition = -1;
+            }
+            
+        }
+        
+        nextReadPosition = nextPos;
+    }
+}
+
 
 void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
+    smoothScrubbing();
     
     int numSamples = bufferToFill.numSamples;
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
@@ -208,6 +241,7 @@ void AtomicAudioSource::prepareToPlay (int samplesPerBlockExpected,
 {
     tempBuffer = new MP_Real_t[16834];
     currentSampleRate = sampleRate;
+    expBufferSize = samplesPerBlockExpected;
 }
 
 

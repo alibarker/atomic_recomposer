@@ -45,11 +45,12 @@ public:
                                 double sampleRate) override;
 
     virtual void releaseResources() override {}
-
+    int expBufferSize;
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
-    
+    int targetPosition;
+
     ScopedPointer<WavetableSinOscillator> osc;
     
     int currentlyPlaying;
@@ -61,7 +62,7 @@ public:
 private:
     
     double getScaledWindowValue(int atomLength, int pos);
-    
+    void smoothScrubbing();
     
     ScopedPointer<MP_Real_t> tempBuffer;
     double getWindowValues(int atomLength, int startSample);

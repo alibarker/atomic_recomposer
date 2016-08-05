@@ -115,10 +115,8 @@ private:
     OwnedArray<FloatParameter> parameters;
     void initialiseParameters(ChangeListener* cl);
 
-    void smoothScrubbing();
     void decomposition();
     
-    int targetPosition;
     int scrubSmoothAmount;
     
     bool isPlayingLeftRight;
