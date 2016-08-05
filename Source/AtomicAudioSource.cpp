@@ -42,8 +42,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
     bufferToFill.buffer->clear();
     
-    float currentBleedValue = *dynamic_cast<FloatParameter*> (engine->getParameter(pBleedAmount));
-    int playbackLimit = *dynamic_cast<IntParameter*> (engine->getParameter(pAtomLimit));
+    float currentBleedValue = engine->getParameter(pBleedAmount);
+    int playbackLimit = engine->getParameter(pAtomLimit);
+
     
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
@@ -183,7 +184,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         nextReadPosition += bufferToFill.numSamples;
     else if(!isCurrentlyScrubbing && isCurrentlyReversing)
         nextReadPosition -= bufferToFill.numSamples;
-
+    
     
     if (nextReadPosition >= getTotalLength() && isCurrentlyLooping)
     {
@@ -196,9 +197,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 
 double AtomicAudioSource::getScaledWindowValue(int atomLength, int pos)
 {
-    int shape = *dynamic_cast<IntParameter*>(engine->getParameter(pWindowShape));
+//    int shape = engine->getParameter(pWindowShape);
     
-    return engine->getWindowValue(atomLength, pos, shape);
+    return engine->getWindowValue(atomLength, pos);
 }
 
 

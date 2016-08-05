@@ -30,8 +30,8 @@ private:
     ScopedPointer<Slider> sliderWindowShape;
 
     FloatParameter* paramBleed;
-    IntParameter* paramAtomLimit;
-    IntParameter* paramWindowShape;
+    FloatParameter* paramAtomLimit;
+    FloatParameter* paramWindowShape;
     
     AtomicAudioEngine* engine;
     

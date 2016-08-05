@@ -12,7 +12,7 @@
 #include "AtomicAudioSource.h"
 
 AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
-                            : Thread("Decomposition"), paramListener(cl)
+                            : Thread("Decomposition"), paramListener(cl), sampleCount(0)
 {
     targetPosition = -1;
     isPlayingLeftRight = true;
@@ -57,16 +57,33 @@ void AtomicAudioEngine::setLooping(bool isLooping, int startSample, int endSampl
 
 void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
+ 
+    RelativeTime timeDifference = Time::getCurrentTime() - lastBufferTime;
+    lastBufferTime = Time::getCurrentTime();
+
     
     if (transportSource.isPlaying())
     {
+        // Check for underruns
+        if ( (timeDifference.inSeconds() - bufferToFill.numSamples / (float) fs) >  0.004)
+        {
+            String status = "UNDERRUN";
+            DBG(status);
+            sendActionMessage(status);
+        }
+        
+        // update parameters
+        currentWindow = windowBuffers.getUnchecked( getParameter(pWindowShape) );
+        
         ScopedReadLock srl (bookLock);
         transportSource.getNextAudioBlock(bufferToFill);
         smoothScrubbing();
         
         String status = "Currently Playing: " + String(atomicSource->currentlyPlaying);
         sendActionMessage(status);
+    
     }
+    
     
 }
 
@@ -77,7 +94,7 @@ void AtomicAudioEngine::smoothScrubbing()
     {
         int currentPos = transportSource.getNextReadPosition();
         int nextPos = targetPosition;
-        int jumpAmount = expBufferSize * *dynamic_cast<FloatParameter*>(getParameter(pMaxScrubSpeed));
+        int jumpAmount = expBufferSize * getParameter(pMaxScrubSpeed);
         if (targetPosition > currentPos)
         {
             nextPos = currentPos + jumpAmount;
@@ -180,6 +197,9 @@ void AtomicAudioEngine::decomposition()
         
         MP_Signal_c* sig = MP_Signal_c::init(rtBook.book->numChans, rtBook.book->numSamples, rtBook.book->sampleRate);
         
+        
+        // Generate approximant for debuggin
+        
         rtBook.book->substract_add(NULL, sig, NULL);
         
         String filename(String(signal.getParentDirectory().getFullPathName() + "/" +  signal.getFileNameWithoutExtension() + "approx" + signal.getFileExtension()));
@@ -264,15 +284,13 @@ double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom, int s
     
     double output;
     
-    jassert(isPositiveAndBelow(shapeValue, windowBuffers.size()));
-    
     if ( isPositiveAndBelow(sampleInAtom, atomLength)) {
         
-        float ratio = (float) windowBuffers.getUnchecked(shapeValue)->getNumSamples() / atomLength;
+        float ratio = (float) currentWindow->getNumSamples() / atomLength;
         
         int bufferSamplePos = floor(sampleInAtom * ratio);
         
-        output = *windowBuffers.getUnchecked(shapeValue)->getReadPointer(0, bufferSamplePos);
+        output = *currentWindow->getReadPointer(0, bufferSamplePos);
         
     }
     else
@@ -374,34 +392,37 @@ void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
     /* Bleed */
     
     float maxBleedAmount = 8;
-    FloatParameter* bleed = new FloatParameter ( String("Bleed Amount"),
+    paramBleed = new FloatParameter ( String("Bleed Amount"),
                                                           NormalisableRange<float>(1.0f/maxBleedAmount, maxBleedAmount, 0.01, 1.0),
                                                           1.0 );
-    bleed->addChangeListener(cl);
-    parameters.add(bleed);
     
+    parameters.add(paramBleed);
+    paramBleed->addChangeListener(cl);
     
     /* Atom limit */
     
-    IntParameter* atomLimit = new IntParameter(String("Atom Playback Limit"), Range<int>(10, 500), 200) ;
-    atomLimit->addChangeListener(cl);
-    parameters.add(atomLimit);
+    atomLimit = new FloatParameter(String("Atom Playback Limit"), NormalisableRange<float>(10, 500, 1, 1.0), 200) ;
     
+    parameters.add(atomLimit);
+    atomLimit->addChangeListener(cl);
+
     
     /* Max Scrubbing Speed */
     
-    FloatParameter* maxScrubSpeed = new FloatParameter ( String("Max. Scrubbing Speed"),
+    maxScrubSpeed = new FloatParameter ( String("Max. Scrubbing Speed"),
                                                 NormalisableRange<float>(1, 10, 0.01, 1.0),
                                                 5.0 );
-    maxScrubSpeed->addChangeListener(cl);
-    parameters.add(maxScrubSpeed);
     
+    parameters.add(maxScrubSpeed);
+    maxScrubSpeed->addChangeListener(cl);
+
     
     /* Window Shape */
     
-    IntParameter* windowShape = new IntParameter (String("Window Shape"), Range<int>(0, 9), 9);
-    windowShape->addChangeListener(cl);
-    parameters.add(windowShape);
+    windowShape = new FloatParameter (String("Window Shape"), NormalisableRange<float>(0, 9, 1, 1.0), 9);
     
+    parameters.add(windowShape);
+    windowShape->addChangeListener(cl);
+
 }
 

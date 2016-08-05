@@ -48,7 +48,7 @@ public:
     void actionListenerCallback (const String& message) override;
 
     void mouseDrag(const MouseEvent& event) override;
-    
+
     void sliderValueChanged (Slider* slider) override;
 
     void setNewBook();
@@ -120,11 +120,14 @@ private:
     ScopedPointer<DocumentWindow> parametersWindow;
     ScopedPointer<ParametersWindow> paramComponent;
 
+    ScopedPointer<Label> underrunStatus;
     ScopedPointer<Label> statusLabel;
 
     ScopedPointer<Slider> sliderBleed;
     
     ScopedPointer<AtomicAudioEngine> audioEngine;
+    
+    
     //==============================================================================
     /* Parameters */
     

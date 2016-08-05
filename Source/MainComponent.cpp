@@ -107,6 +107,11 @@ MainContentComponent::MainContentComponent()
     statusLabel->setBounds(1, 600, 300, 30);
     addAndMakeVisible(statusLabel);
     
+    underrunStatus = new Label();
+    underrunStatus->setBounds(301, 600, 300, 30);
+    underrunStatus->addMouseListener(this, false);
+    addAndMakeVisible(underrunStatus);
+    
     /* Transport Buttons */
     
     int transportButtonXPos = 160;
@@ -262,13 +267,9 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
             setNewBook();
         }
     }
-    else if (source == audioEngine->getParameter(pBleedAmount))
+    else if (source == audioEngine->paramBleed)
     {
-        
-        
-        float value = *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount));
-        wivigram->setBleed(value);
-        
+        wivigram->setBleed(audioEngine->getParameter(pBleedAmount));
     }
 }
 
@@ -276,12 +277,16 @@ void MainContentComponent::timerCallback()
 {
     float newPos = audioEngine->getTransportPosition();
     timeline->setCursorPosition( newPos);
-
+    
 }
 
 void MainContentComponent::actionListenerCallback (const String& message)
 {
     statusLabel->setText(message, dontSendNotification);
+    if (message.equalsIgnoreCase("UNDERRUN") )
+    {
+        underrunStatus->setText("UNDERRUN", dontSendNotification);
+    }
 }
 
 
@@ -294,12 +299,13 @@ void MainContentComponent::mouseDrag(const MouseEvent &event)
     }
 }
 
+
 void MainContentComponent::sliderValueChanged (Slider* slider)
 {
     if (slider == sliderBleed)
     {
         float value = sliderBleed->getValue();
-        *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)) = value;
+        audioEngine->setParameter(pBleedAmount,  value);
         wivigram->setBleed(value);
     }
 }
@@ -310,7 +316,7 @@ void MainContentComponent::setNewBook()
     
     timeline->setBounds(0, 0, newWidth, timelineViewport->getMaximumVisibleHeight());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-    wivigram->setBleed( *dynamic_cast<FloatParameter*>(audioEngine->getParameter(pBleedAmount)));
+    wivigram->setBleed( audioEngine->getParameter(pBleedAmount));
     wivigram->updateBook(&audioEngine->rtBook);
 }
 

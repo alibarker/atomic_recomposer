@@ -61,7 +61,8 @@ public:
 private:
     
     double getScaledWindowValue(int atomLength, int pos);
-            
+    
+    
     ScopedPointer<MP_Real_t> tempBuffer;
     double getWindowValues(int atomLength, int startSample);
 

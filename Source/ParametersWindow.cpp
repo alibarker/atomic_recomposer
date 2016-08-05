@@ -16,12 +16,13 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     int sliderHeight = 30;
     int textBoxSize = 50;
     /* Bleed */
-    paramBleed = dynamic_cast<FloatParameter*>(aae->getParameter(pBleedAmount));
 
+    paramBleed = aae->paramBleed;
+    
     sliderBleed = new Slider("Bleed Amount");
     sliderBleed->setSliderStyle(Slider::LinearHorizontal);
-    sliderBleed->setRange(paramBleed->range.start, paramBleed->range.end);
-    sliderBleed->setValue(*paramBleed);
+    sliderBleed->setRange(aae->paramBleed->range.start, aae->paramBleed->range.end);
+    sliderBleed->setValue(aae->getParameter(pBleedAmount));
     sliderBleed->addListener(this);
     sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
     
@@ -29,13 +30,13 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     sliderBleed->setBounds(1, 1, sliderWidth, sliderHeight);
     
     /* Atom Limit */
-    paramAtomLimit = dynamic_cast<IntParameter*>(aae->getParameter(pAtomLimit));
-
+    
+    paramAtomLimit= aae->atomLimit;
     
     sliderAtomsLimit = new Slider("Atoms limit");
     sliderAtomsLimit->setSliderStyle(Slider::LinearHorizontal);
-    sliderAtomsLimit->setRange(paramAtomLimit->range.getStart(), paramAtomLimit->range.getEnd(), 1);
-    sliderAtomsLimit->setValue(*paramAtomLimit);
+    sliderAtomsLimit->setRange(aae->atomLimit->range.start, aae->atomLimit->range.end, 1);
+    sliderAtomsLimit->setValue(aae->getParameter(pAtomLimit));
     sliderAtomsLimit->addListener(this);
     sliderAtomsLimit->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
 
@@ -44,12 +45,12 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
 
     /* Window Shape */
     
-    paramWindowShape = dynamic_cast<IntParameter*>(aae->getParameter(pWindowShape));
+    paramWindowShape = aae->windowShape;
     
     sliderWindowShape = new Slider("Window Shape");
     sliderWindowShape->setSliderStyle(Slider::LinearHorizontal);
-    sliderWindowShape->setRange(paramWindowShape->range.getStart(), paramWindowShape->range.getEnd(), 1);
-    sliderWindowShape->setValue(*paramWindowShape);
+    sliderWindowShape->setRange(aae->windowShape->range.start, aae->windowShape->range.end, 1);
+    sliderWindowShape->setValue(floor(aae->getParameter(pWindowShape)));
     sliderWindowShape->addListener(this);
     addAndMakeVisible(sliderWindowShape);
     sliderWindowShape->setBounds(1, 2 * (1 + sliderHeight), sliderWidth, sliderHeight);

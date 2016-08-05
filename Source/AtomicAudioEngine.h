@@ -54,6 +54,8 @@ public:
     {
         transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
         expBufferSize = samplesPerBlockExpected;
+        fs = sampleRate;
+        lastBufferTime = Time::getCurrentTime();
     }
     
     
@@ -66,7 +68,7 @@ public:
     void setTransportPosition(float posAsPercentage, bool isCurrentlyDragging);
     float getTransportPosition();
     
-    double getWindowValue(int atomLength, int sampleInAtom, int shapeValue);
+    double getWindowValue(int atomLength, int sampleInAtom);
 
     bool getIsPlayingLeftToRight() {return isPlayingLeftRight;}
     
@@ -93,18 +95,24 @@ public:
     
     // Parameters
     
-    Parameter* getParameter(int index) { return parameters[index]; }
+    float getParameter(int index) { return *parameters.getUnchecked(index); }
+    void setParameter(int index, float value) { *parameters[index] = value; }
     
-
+    FloatParameter* paramBleed;
+    FloatParameter* atomLimit;
+    FloatParameter* maxScrubSpeed;
+    FloatParameter* windowShape;
+    
     
 private:
     
     void makeOtherWindows(int windowLength);
     OwnedArray<AudioBuffer<double>> windowBuffers;
+    AudioBuffer<double>* currentWindow;
     int windowLength;
 
     
-    OwnedArray<Parameter> parameters;
+    OwnedArray<FloatParameter> parameters;
     void initialiseParameters(ChangeListener* cl);
 
     void smoothScrubbing();
@@ -129,6 +137,10 @@ private:
     float prevBleedValue;
     int expBufferSize;
     bool readyForPlayback;
+    
+    uint64 sampleCount;
+    float fs;
+    Time lastBufferTime;
     
     ScopedPointer<AtomicAudioSource> atomicSource;
 
