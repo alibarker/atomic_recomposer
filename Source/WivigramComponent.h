@@ -35,6 +35,10 @@ public:
         removeAllChildren();
     }
     
+    void paint(Graphics &g) override
+    {
+        g.fillAll(Colours::white);
+    }
     
     void updateBook(RealtimeBook* newBook)
     {
@@ -46,8 +50,11 @@ public:
         numSamples = rtBook->book->numSamples;
         numChans = rtBook->book->numChans;
     
-
+        float maxAmp = rtBook->book->atom[0]->amp[0];
+        NormalisableRange<float> skew(0.0, maxAmp, 0.01, 0.25);
         
+        
+
         for (int i = 0; i < numAtoms; ++i)
         {
             AtomComponent* ac = new AtomComponent(*genericGaborAtom, 0, &overallTransform);
@@ -57,6 +64,9 @@ public:
             int genericSize = genericGaborAtom->getWidth();
             
             MP_Gabor_Atom_Plugin_c* gabor_atom = (MP_Gabor_Atom_Plugin_c*)rtBook->book->atom[i];
+            
+            ac->amp = skew.convertTo0to1(gabor_atom->amp[0]);
+            DBG(ac->amp);
             
             // in samples
             int atomLength = gabor_atom->support->len;
@@ -149,8 +159,6 @@ private:
                 alphaImage.setOverlayColour(Colour(0, 255, 0));
             else
                 alphaImage.setOverlayColour(Colour(0, 0, 255));
-            
-            
         }
         
         
@@ -166,6 +174,7 @@ private:
         AffineTransform* transformGlobal;
 
         Point<float> centre;
+        float amp;
     private:
         int channelNumber;
     };

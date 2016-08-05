@@ -21,11 +21,16 @@ AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
     
     initialiseParameters(cl);
     
+    windowLength = pow(2, 15);
+    makeOtherWindows(windowLength);
+
+    
 }
 
-AtomicAudioEngine::~AtomicAudioEngine() {
+AtomicAudioEngine::~AtomicAudioEngine()
+{
     stopThread(-1);
-    atomicSource.release();
+    transportSource.setSource(nullptr);
 }
 
 
@@ -279,7 +284,7 @@ float AtomicAudioEngine::getTransportPosition()
     return 0.0;
 }
 
-double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom, int shapeValue)
+double AtomicAudioEngine::getWindowValue(int atomLength, int sampleInAtom)
 {
     
     double output;
@@ -342,8 +347,6 @@ void AtomicAudioEngine::prepareBook()
         rtBook.realtimeAtoms.clear();
         
         
-        windowLength = pow(2, 15);
-        makeOtherWindows(windowLength);
         
         
         

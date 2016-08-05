@@ -35,7 +35,7 @@ public:
             wavetable.setSample(0, i, sin(phase));
         }
         
-        interpolation = linearInterpolation;
+        interpolation = noInterpolation;
         
     }
     
