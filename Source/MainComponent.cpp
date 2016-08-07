@@ -21,12 +21,15 @@ MainContentComponent::MainContentComponent()
     File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
     File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
 
+
     
     audioEngine = new AtomicAudioEngine(this);
-    audioEngine->setAudioChannels (0, 2);
     audioEngine->addChangeListener(this);
     audioEngine->transportSource.addChangeListener(this);
     audioEngine->addActionListener(this);
+    
+    setAudioChannels (0, 2);
+
     
     textEditorDictionary = new TextEditor("Dictionary");
     textEditorDictionary->setBounds(649, 1, 300, 25);
@@ -174,7 +177,7 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
-    audioEngine->shutdownAudio();
+    audioEngine->releaseResources();
     timeline.release();
 }
 

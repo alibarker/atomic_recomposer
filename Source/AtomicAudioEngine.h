@@ -26,7 +26,7 @@ enum
     pWindowShape
 };
 
-class AtomicAudioEngine :   public AudioAppComponent,
+class AtomicAudioEngine :   public AudioProcessor,
                             public ChangeBroadcaster,
                             public Thread,
                             public ActionBroadcaster
@@ -37,7 +37,6 @@ public:
     
     ~AtomicAudioEngine();
 
-    
     void startPlaying() { transportSource.start(); }
     void stopPlaying() { transportSource.stop(); }
     
@@ -49,8 +48,7 @@ public:
     void setScrubbing(bool status);
     bool isCurrentlyScrubbing();
 
-    virtual void prepareToPlay (int samplesPerBlockExpected,
-                                double sampleRate) override
+    void prepareToPlay ( double sampleRate, int samplesPerBlockExpected) override
     {
         transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
         expBufferSize = samplesPerBlockExpected;
@@ -59,7 +57,7 @@ public:
     }
     
     
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
+    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
     
 
     virtual void releaseResources() override {}
@@ -103,6 +101,30 @@ public:
     FloatParameter* maxScrubSpeed;
     FloatParameter* windowShape;
     
+    //==============================================================================
+    
+    
+    const String getName() const override {return "Atomic Audio Decomposer"; }
+    
+    double getTailLengthSeconds() const override { return 0.0; }
+    
+    bool acceptsMidi() const override { return false; }
+    
+    bool producesMidi() const override { return false; }
+    
+    AudioProcessorEditor* createEditor() override { return nullptr; }
+    
+    bool hasEditor() const override { return false; }
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override {return 0; }
+    void setCurrentProgram (int index) override {}
+    const String getProgramName (int index) override { return "";}
+    void changeProgramName (int index, const String& newName) override {}
+
+    void getStateInformation (juce::MemoryBlock& destData) override {}
+    void setStateInformation (const void* data, int sizeInBytes) override {}
+
+    //==============================================================================
     
 private:
     

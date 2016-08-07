@@ -58,9 +58,9 @@ void AtomicAudioEngine::setLooping(bool isLooping, int startSample, int endSampl
 
 
 
-void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midiMessages)
 {
- 
+    int numSamples = buffer.getNumSamples();
     RelativeTime timeDifference = Time::getCurrentTime() - lastBufferTime;
     lastBufferTime = Time::getCurrentTime();
 
@@ -68,7 +68,7 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     if (transportSource.isPlaying())
     {
         // Check for underruns
-        if ( (timeDifference.inSeconds() - bufferToFill.numSamples / (float) fs) >  0.004)
+        if ( (timeDifference.inSeconds() - numSamples / (float) fs) >  0.004)
         {
             String status = "UNDERRUN";
             DBG(status);
@@ -79,7 +79,7 @@ void AtomicAudioEngine::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
         currentWindow = windowBuffers.getUnchecked( getParameter(pWindowShape) );
         
         ScopedReadLock srl (bookLock);
-        transportSource.getNextAudioBlock(bufferToFill);
+        transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
         
         String status = "Currently Playing: " + String(atomicSource->currentlyPlaying);
         sendActionMessage(status);

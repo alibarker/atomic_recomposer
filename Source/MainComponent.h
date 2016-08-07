@@ -27,8 +27,9 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainContentComponent :    public ButtonListener,
-                                public Component,
+class MainContentComponent :    public AudioAppComponent,
+                                public ButtonListener,
+//                                public Component,
                                 public ChangeListener,
                                 public Timer,
                                 public Slider::Listener,
@@ -59,6 +60,25 @@ public:
         statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
     }
     
+    virtual void prepareToPlay (int samplesPerBlockExpected,
+                                double sampleRate) override
+    {
+        audioEngine->prepareToPlay(samplesPerBlockExpected, sampleRate);
+    }
+    
+    
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
+    {
+        MidiBuffer emptyBuffer;
+        audioEngine->processBlock(*bufferToFill.buffer, emptyBuffer);
+    }
+    
+    
+    virtual void releaseResources() override
+    {
+        audioEngine->releaseResources();
+    }
+  
 
     
     Value getParameter(const Identifier& parameterId);
