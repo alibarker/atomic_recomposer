@@ -64,6 +64,14 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
     RelativeTime timeDifference = Time::getCurrentTime() - lastBufferTime;
     lastBufferTime = Time::getCurrentTime();
 
+    int vocoderValue = getParameter(pVocoder);
+    
+    if (prevVocoderValue != vocoderValue)
+    {
+        quantizeAtomFrequencies(vocoderValue);
+        prevVocoderValue = vocoderValue;
+    }
+    
     
     if (transportSource.isPlaying())
     {
@@ -301,26 +309,37 @@ void AtomicAudioEngine::makeOtherWindows(int windowLength)
 
 }
 
+void AtomicAudioEngine::quantizeAtomFrequencies(int midiNumber)
+{
+    int numAtoms = rtBook.realtimeAtoms.size();
+
+    if (midiNumber != 0)
+    {
+        float fundamentalPhaseInc = M_PI * MidiMessage::getMidiNoteInHertz(midiNumber) / fs;
+        
+        for (int i = 0; i < numAtoms; ++i)
+        {
+            RealtimeAtom* atom = rtBook.realtimeAtoms.getUnchecked(i);
+            atom->phaseInc = ceil( atom->originalPhaseInc / fundamentalPhaseInc ) * fundamentalPhaseInc;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < numAtoms; ++i)
+        {
+            RealtimeAtom* atom = rtBook.realtimeAtoms.getUnchecked(i);
+            atom->phaseInc = atom->originalPhaseInc;
+        }
+    }
+}
+
+
 void AtomicAudioEngine::prepareBook()
 {
     if (rtBook.book != nullptr) {
         
-//        windowBuffer = new AudioBuffer<MP_Real_t>(1, windowLength);
-//
-//        unsigned char windowType = 9;
-//        double windowOption = 0;
-//
-//        make_window(windowBuffer->getWritePointer(0), windowLength, windowType, windowOption);
-
-        
         
         rtBook.realtimeAtoms.clear();
-        
-        
-        
-        
-        
-        
         
         for (int i = 0; i < rtBook.book->numAtoms; ++i)
         {
@@ -347,9 +366,7 @@ void AtomicAudioEngine::prepareBook()
             }
             
             newAtom->atom = gabor_atom;
-            newAtom->phaseInc = 2 * M_PI * gabor_atom->freq;
-//            newAtom->originalSupport = *gabor_atom->support;
-//            newAtom->ratio = windowLength / gabor_atom->support->len;
+            newAtom->phaseInc = newAtom->originalPhaseInc = 2 * M_PI * gabor_atom->freq;
             rtBook.realtimeAtoms.add(newAtom);
         }
         
@@ -397,5 +414,13 @@ void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
     parameters.add(windowShape);
     windowShape->addChangeListener(cl);
 
+    
+    /* Vocoder */
+    
+    vocoderEffect = new FloatParameter (String("Window Shape"), NormalisableRange<float>(0, 128, 1, 1.0), 0);
+    parameters.add(vocoderEffect);
+    vocoderEffect->addChangeListener(cl);
+    
+    
 }
 

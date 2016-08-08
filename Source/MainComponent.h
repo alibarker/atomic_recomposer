@@ -63,7 +63,7 @@ public:
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override
     {
-        audioEngine->prepareToPlay(samplesPerBlockExpected, sampleRate);
+        audioEngine->prepareToPlay(sampleRate, samplesPerBlockExpected);
     }
     
     

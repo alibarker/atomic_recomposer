@@ -23,7 +23,8 @@ enum
     pBleedAmount = 0,
     pAtomLimit,
     pMaxScrubSpeed,
-    pWindowShape
+    pWindowShape,
+    pVocoder
 };
 
 class AtomicAudioEngine :   public AudioProcessor,
@@ -100,7 +101,7 @@ public:
     FloatParameter* atomLimit;
     FloatParameter* maxScrubSpeed;
     FloatParameter* windowShape;
-    
+    FloatParameter* vocoderEffect;
     //==============================================================================
     
     
@@ -133,6 +134,7 @@ private:
     AudioBuffer<double>* currentWindow;
     int windowLength;
 
+    void quantizeAtomFrequencies(int midiNumber);
     
     OwnedArray<FloatParameter> parameters;
     void initialiseParameters(ChangeListener* cl);
@@ -140,7 +142,7 @@ private:
     void decomposition();
     
     int scrubSmoothAmount;
-    
+    int prevVocoderValue;
     bool isPlayingLeftRight;
 
     bool isScrubbing = false;

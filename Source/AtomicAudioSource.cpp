@@ -23,7 +23,7 @@ AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
     nextReadPosition = 0;
     
     
-    
+    currentVocoderValue = 0;
 }
 
 int64 AtomicAudioSource::getTotalLength() const
@@ -75,10 +75,9 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
     bufferToFill.buffer->clear();
     
-    float currentBleedValue = engine->getParameter(pBleedAmount);
+    currentBleedValue = engine->getParameter(pBleedAmount);
     int playbackLimit = engine->getParameter(pAtomLimit);
-
-    
+ 
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
     int numAtomsCurrentlyPlaying = 0;

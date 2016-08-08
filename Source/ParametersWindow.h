@@ -28,10 +28,15 @@ private:
     ScopedPointer<Slider> sliderBleed;
     ScopedPointer<Slider> sliderAtomsLimit;
     ScopedPointer<Slider> sliderWindowShape;
+    
+    ScopedPointer<Slider> sliderVocoderValue;
+    ScopedPointer<TextButton> buttonVocoderOnOff;
 
     FloatParameter* paramBleed;
     FloatParameter* paramAtomLimit;
     FloatParameter* paramWindowShape;
+    FloatParameter* paramVocoderEffect;
+    
     
     AtomicAudioEngine* engine;
     

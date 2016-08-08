@@ -56,6 +56,19 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     sliderWindowShape->setBounds(1, 2 * (1 + sliderHeight), sliderWidth, sliderHeight);
     sliderWindowShape->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
 
+    /* Vocoder */
+    
+    paramVocoderEffect = aae->vocoderEffect;
+    
+    sliderVocoderValue = new Slider("Vocoder Effect");
+    sliderVocoderValue->setSliderStyle(Slider::LinearHorizontal);
+    sliderVocoderValue->setRange(paramVocoderEffect->range.start, paramVocoderEffect->range.end, 1);
+    sliderVocoderValue->setValue(floor(aae->getParameter(pVocoder)));
+    sliderVocoderValue->setBounds(1, 3 * (1 + sliderHeight), sliderWidth, sliderHeight);
+    addAndMakeVisible(sliderVocoderValue);
+    sliderVocoderValue->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
+    sliderVocoderValue->addListener(this);
+    
 }
 
 void ParametersWindow::sliderValueChanged(Slider *slider)
@@ -71,5 +84,9 @@ void ParametersWindow::sliderValueChanged(Slider *slider)
     else if (slider == sliderWindowShape)
     {
         *paramWindowShape = sliderWindowShape->getValue();
+    }
+    else if (slider == sliderVocoderValue)
+    {
+        *paramVocoderEffect = sliderVocoderValue->getValue();
     }
 }

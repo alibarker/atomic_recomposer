@@ -19,6 +19,7 @@ struct RealtimeAtom
 {
     double* currentPhase;
     double phaseInc;
+    double originalPhaseInc;
     MP_Atom_c* atom;
 //    double ratio;
 //    MP_Support_t originalSupport;

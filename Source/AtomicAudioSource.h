@@ -81,6 +81,7 @@ private:
     float currentBleedValue;
     float currentSampleRate;
     
+    int currentVocoderValue;
     
 };
 

@@ -21,7 +21,7 @@ MainContentComponent::MainContentComponent()
     File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
     File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
 
-
+    
     
     audioEngine = new AtomicAudioEngine(this);
     audioEngine->addChangeListener(this);
@@ -165,6 +165,11 @@ MainContentComponent::MainContentComponent()
     parametersWindow->setBounds(result);
     parametersWindow->setVisible(true);
     parametersWindow->setContentOwned(paramComponent, false);
+    
+    /* Vocoder effect */
+    
+    
+    
     
     /* Misc */
     
