@@ -44,7 +44,7 @@ public:
     {
     
         
-        rtBook = newBook;
+         rtBook = newBook;
         
         numAtoms = rtBook->book->numAtoms;
         numSamples = rtBook->book->numSamples;
@@ -126,7 +126,7 @@ private:
 
         return  exp( -(x*x)/DSP_GAUSS_DEFAULT_OPT - (y*y)/DSP_GAUSS_DEFAULT_OPT );
     }
-
+    
     
     void drawGenericGaborAtom()
     {

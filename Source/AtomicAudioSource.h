@@ -26,13 +26,10 @@ public:
     ~AtomicAudioSource() {}
     
     void setNextReadPosition (int64 newPosition) override {nextReadPosition = newPosition;}
-    
     int64 getNextReadPosition() const override {return nextReadPosition;}
     
-    /** Returns the total length of the stream (in samples). */
     int64 getTotalLength() const override;
     
-    /** Returns true if this source is actually playing in a loop. */
     bool isLooping() const override {return isCurrentlyLooping;}
     virtual void setLooping (bool shouldLoop) override { isCurrentlyLooping = shouldLoop; }
     
@@ -45,20 +42,19 @@ public:
                                 double sampleRate) override;
 
     virtual void releaseResources() override {}
-    int expBufferSize;
-    
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
+    
+    // TODO: make these private!
     int targetPosition;
+    int expBufferSize;
 
     ScopedPointer<WavetableSinOscillator> osc;
     
     int currentlyPlaying;
     int currentlyTooQuiet;
     int currentlyNotSupported;
-    
-    void updateBleed();
-    
+
 private:
     
     double getScaledWindowValue(int atomLength, int pos);
@@ -66,7 +62,8 @@ private:
     
     ScopedPointer<MP_Real_t> tempBuffer;
     double getWindowValues(int atomLength, int startSample);
-
+    
+    
     
     AtomicAudioEngine* engine;
     
@@ -80,6 +77,7 @@ private:
     
     float currentBleedValue;
     float currentSampleRate;
+    
     
     int currentVocoderValue;
     

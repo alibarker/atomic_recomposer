@@ -127,7 +127,15 @@ public:
 
     //==============================================================================
     
+    File dictionary;
+    File signal;
+    int numIterations;
+
+    
 private:
+    
+    ScopedPointer<FileLogger> logger;
+
     
     void makeOtherWindows(int windowLength);
     OwnedArray<AudioBuffer<double>> windowBuffers;
@@ -146,9 +154,6 @@ private:
     bool isPlayingLeftRight;
 
     bool isScrubbing = false;
-    File dictionary;
-    File signal;
-    int numIterations;
     
     bool currentlyDecomposing;
     

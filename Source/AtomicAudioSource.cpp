@@ -13,7 +13,7 @@
 
 AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
 {
-    osc = new WavetableSinOscillator(4096);
+    osc = new WavetableSinOscillator(pow(2, 15));
     isCurrentlyScrubbing = false;
     isCurrentlyRunning = false;
     isCurrentlyLooping = false;
@@ -207,7 +207,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     currentlyPlaying = numAtomsCurrentlyPlaying;
     currentlyTooQuiet = numAtomsTooQuiet;
     currentlyNotSupported = numAtomsNotSupported;
-    
+        
     // update position as necessary
 
     prevReadPosition = nextReadPosition;

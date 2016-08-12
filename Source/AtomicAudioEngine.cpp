@@ -23,6 +23,18 @@ AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
     windowLength = pow(2, 15);
     makeOtherWindows(windowLength);
     
+#if JUCE_DEBUG
+    
+    File logFile("~/Dropbox/QMUL/Final Project/Code/mpdgui/Data/atom_playback.log");
+    String header = "Atom Playback Data: " + signal.getFullPathName()
+                        + " " + dictionary.getFullPathName()
+                        + " " + String(numIterations);
+    
+    logger = new FileLogger(logFile.getNonexistentSibling(false) , header);
+    
+    logger->logMessage("LOG START");
+#endif
+    
 }
 
 AtomicAudioEngine::~AtomicAudioEngine()
@@ -63,15 +75,6 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
     int numSamples = buffer.getNumSamples();
     RelativeTime timeDifference = Time::getCurrentTime() - lastBufferTime;
     lastBufferTime = Time::getCurrentTime();
-
-    int vocoderValue = getParameter(pVocoder);
-    
-    if (prevVocoderValue != vocoderValue)
-    {
-        quantizeAtomFrequencies(vocoderValue);
-        prevVocoderValue = vocoderValue;
-    }
-    
     
     if (transportSource.isPlaying())
     {
@@ -85,13 +88,32 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
         
         // update parameters
         currentWindow = windowBuffers.getUnchecked( getParameter(pWindowShape) );
+       
+        int vocoderValue = getParameter(pVocoder);
         
+        if (prevVocoderValue != vocoderValue)
+        {
+            quantizeAtomFrequencies(vocoderValue);
+            prevVocoderValue = vocoderValue;
+        }
+        
+        // process
         ScopedReadLock srl (bookLock);
         transportSource.getNextAudioBlock(AudioSourceChannelInfo(buffer));
         
         String status = "Currently Playing: " + String(atomicSource->currentlyPlaying);
         sendActionMessage(status);
     
+#if JUCE_DEBUG
+
+        String msg = String(atomicSource->getNextReadPosition()) + " "
+                        + String(atomicSource->currentlyPlaying) + " "
+                        + String(atomicSource->currentlyTooQuiet) + " "
+                        + String(atomicSource->currentlyNotSupported);
+        
+        logger->logMessage(msg);
+        
+#endif
     }
     
     
@@ -391,7 +413,7 @@ void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
     
     /* Atom limit */
     
-    atomLimit = new FloatParameter(String("Atom Playback Limit"), NormalisableRange<float>(10, 500, 1, 1.0), 200) ;
+    atomLimit = new FloatParameter(String("Atom Playback Limit"), NormalisableRange<float>(10, 10000, 1, 1.0), 200) ;
     
     parameters.add(atomLimit);
     atomLimit->addChangeListener(cl);

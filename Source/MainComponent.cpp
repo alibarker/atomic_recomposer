@@ -152,9 +152,9 @@ MainContentComponent::MainContentComponent()
     /* Parameters Window */
     
     paramComponent = new ParametersWindow(audioEngine);
-    Rectangle<int> area (0, 0, 300, 500);
+    Rectangle<int> area (0, 0, 350, 500);
     
-    parametersWindow = new DocumentWindow("Parameters Window", Colour(0, 0, 0), 0);
+    parametersWindow = new DocumentWindow("Parameters Window", Colour(Colours::whitesmoke), 0);
     
     RectanglePlacement placement (RectanglePlacement::xRight
                                   | RectanglePlacement::yTop
@@ -175,6 +175,7 @@ MainContentComponent::MainContentComponent()
     
 //    addParameters();
     startTimerHz(30);
+    underrunCounter = -1;
     changeState(Inactive);
 //    initialiseParameters();
 
@@ -183,6 +184,7 @@ MainContentComponent::MainContentComponent()
 MainContentComponent::~MainContentComponent()
 {
     audioEngine->releaseResources();
+    shutdownAudio();
     timeline.release();
 }
 
@@ -285,6 +287,16 @@ void MainContentComponent::timerCallback()
 {
     float newPos = audioEngine->getTransportPosition();
     timeline->setCursorPosition( newPos);
+    if (underrunCounter >= 0)
+    {
+        underrunCounter++;
+        if (underrunCounter >= 60)
+        {
+            underrunStatus->setText("", dontSendNotification);
+            underrunCounter = -1;
+        }
+        
+    }
     
 }
 
@@ -294,6 +306,7 @@ void MainContentComponent::actionListenerCallback (const String& message)
     if (message.equalsIgnoreCase("UNDERRUN") )
     {
         underrunStatus->setText("UNDERRUN", dontSendNotification);
+        underrunCounter = 0;
     }
 }
 

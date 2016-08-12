@@ -84,7 +84,6 @@ public:
     Value getParameter(const Identifier& parameterId);
     void setParameter(const Identifier& parameterId, Value value);
     
-//    void parameterChanged(ParameterIndex index);
     void initialiseParameters();
 private:
     
@@ -142,6 +141,7 @@ private:
 
     ScopedPointer<Label> underrunStatus;
     ScopedPointer<Label> statusLabel;
+    int underrunCounter;
 
     ScopedPointer<Slider> sliderBleed;
     
