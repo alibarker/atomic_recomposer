@@ -459,6 +459,15 @@ void AtomicAudioEngine::initialiseParameters()
                                         0);
     addParameter(vocoderEffect);
     
+    /* Playback Speed */
     
+    float maxSpeed = 5.0;
+    
+    paramSpeed = new AudioParameterFloat (String("speed"),
+                                          String("Playback Speed"),
+                                          NormalisableRange<float>(1/maxSpeed, maxSpeed, 0.01, 1.0),
+                                          1.0);
+    addParameter(paramSpeed);
+        
 }
 

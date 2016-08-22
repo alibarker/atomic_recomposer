@@ -47,6 +47,7 @@ public:
     void setBleed(float value) { currentBleedValue = value; }
     void setPlaybacklimit(int value) { playbackLimit = value; }
     void setJumpAmount(int value) { jumpAmount = value; }
+    void setSpeed(float value) { currentSpeed = value; }
     
     // TODO: make these private!
     int targetPosition;
@@ -81,7 +82,7 @@ private:
     float currentBleedValue;
     int playbackLimit;
     int jumpAmount; // used for limiting scrubbing speed
-    
+    float currentSpeed;
     
     float currentSampleRate;
     

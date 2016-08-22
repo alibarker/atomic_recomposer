@@ -23,7 +23,8 @@ enum
     pAtomLimit,
     pMaxScrubSpeed,
     pWindowShape,
-    pVocoder
+    pVocoder,
+    pSpeed
 };
 
 class AtomicAudioEngine :   public AudioProcessor,
@@ -98,6 +99,7 @@ public:
     AudioParameterFloat* maxScrubSpeed;
     AudioParameterInt* windowShape;
     AudioParameterInt* vocoderEffect;
+    AudioParameterFloat* paramSpeed;
     //==============================================================================
     
     

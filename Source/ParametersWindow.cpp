@@ -84,7 +84,7 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     sliderVocoderValue = new Slider("Vocoder Effect");
     sliderVocoderValue->setRange(paramVocoderEffect->getRange().getStart(),
                                  paramVocoderEffect->getRange().getEnd(), 1);
-    sliderVocoderValue->setValue(floor(aae->getParameter(pVocoder)));
+    sliderVocoderValue->setValue(*paramVocoderEffect);
     sliderVocoderValue->addListener(this);
 
     sliderVocoderValue->setBounds(1, 3 * (1 + sliderHeight), sliderWidth, sliderHeight);
@@ -95,6 +95,25 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     labelVocoderValue = new Label("Vocoder", "Vocoder: 0 = Off");
     labelVocoderValue->setBounds(sliderWidth + 2, 3 * (1 + sliderHeight), labelWidth, sliderHeight);
     addAndMakeVisible(labelVocoderValue);
+    
+    /* Playback Speed */
+    
+    paramSpeed = aae->paramSpeed;
+    
+    sliderSpeed = new Slider("Playback Speed");
+    sliderSpeed->setRange(paramSpeed->range.start, paramSpeed->range.end, 1);
+    sliderSpeed->setValue(*paramSpeed);
+    sliderSpeed->setSkewFactorFromMidPoint(1.0);
+    sliderSpeed->addListener(this);
+    
+    sliderSpeed->setBounds(1, 4 * (1 + sliderHeight), sliderWidth, sliderHeight);
+    sliderSpeed->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
+    sliderSpeed->setSliderStyle(Slider::LinearHorizontal);
+    addAndMakeVisible(sliderSpeed);
+    
+    labelSpeed = new Label("Playback Speed", "Playback Speed");
+    labelSpeed->setBounds(sliderWidth + 2, 4 * (1 + sliderHeight), labelWidth, sliderHeight);
+    addAndMakeVisible(labelSpeed);
 
 }
 
