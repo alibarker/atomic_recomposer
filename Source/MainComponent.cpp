@@ -23,10 +23,12 @@ MainContentComponent::MainContentComponent()
 
     
     
-    audioEngine = new AtomicAudioEngine(this);
+    audioEngine = new AtomicAudioEngine();
     audioEngine->addChangeListener(this);
     audioEngine->transportSource.addChangeListener(this);
     audioEngine->addActionListener(this);
+    audioEngine->addListener(this);
+    
     
     setAudioChannels (0, 2);
 
@@ -277,10 +279,6 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
             setNewBook();
         }
     }
-    else if (source == audioEngine->paramBleed)
-    {
-        wivigram->setBleed(audioEngine->getParameter(pBleedAmount));
-    }
 }
 
 void MainContentComponent::timerCallback()
@@ -337,7 +335,7 @@ void MainContentComponent::setNewBook()
     
     timeline->setBounds(0, 0, newWidth, timelineViewport->getMaximumVisibleHeight());
     wivigram->setBoundsRelative(0.0f, 0.0f, 1.0f, 1.0f);
-    wivigram->setBleed( audioEngine->getParameter(pBleedAmount));
+    wivigram->setBleed( *audioEngine->paramBleed);
     wivigram->updateBook(&audioEngine->rtBook);
 }
 

@@ -12,7 +12,6 @@
 #define PARAMETERSWINDOW_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "Parameters.h"
 #include "AtomicAudioEngine.h"
 
 class ParametersWindow : public Component, public Slider::Listener
@@ -30,10 +29,10 @@ private:
     ScopedPointer<Slider> sliderWindowShape;
     ScopedPointer<Slider> sliderVocoderValue;
 
-    FloatParameter* paramBleed;
-    FloatParameter* paramAtomLimit;
-    FloatParameter* paramWindowShape;
-    FloatParameter* paramVocoderEffect;
+    AudioParameterFloat* paramBleed;
+    AudioParameterInt* paramAtomLimit;
+    AudioParameterInt* paramWindowShape;
+    AudioParameterInt* paramVocoderEffect;
     
     ScopedPointer<Label> labelBleed;
     ScopedPointer<Label> labelAtomsLimit;

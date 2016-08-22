@@ -11,17 +11,18 @@
 #include "AtomicAudioEngine.h"
 #include "AtomicAudioSource.h"
 
-AtomicAudioEngine::AtomicAudioEngine(ChangeListener* cl)
-                            : Thread("Decomposition"), paramListener(cl), sampleCount(0)
+AtomicAudioEngine::AtomicAudioEngine()
+                            : Thread("Decomposition"), sampleCount(0)
 {
     isPlayingLeftRight = true;
     currentlyDecomposing = false;
     startThread();
     
-    initialiseParameters(cl);
     
     windowLength = pow(2, 15);
     makeOtherWindows(windowLength);
+    
+    initialiseParameters();
     
 #if JUCE_DEBUG
     
@@ -76,8 +77,16 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
     RelativeTime timeDifference = Time::getCurrentTime() - lastBufferTime;
     lastBufferTime = Time::getCurrentTime();
     
+    // update parameters
+    
+    
     if (transportSource.isPlaying())
     {
+        atomicSource->setBleed(*paramBleed);
+        atomicSource->setPlaybacklimit(*atomLimit);
+        atomicSource->setJumpAmount(*maxScrubSpeed);
+
+        
         // Check for underruns
         if ( (timeDifference.inSeconds() - numSamples / (float) fs) >  0.004)
         {
@@ -87,9 +96,9 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
         }
         
         // update parameters
-        currentWindow = windowBuffers.getUnchecked( getParameter(pWindowShape) );
+        currentWindow = windowBuffers.getUnchecked( *windowShape );
        
-        int vocoderValue = getParameter(pVocoder);
+        int vocoderValue = *vocoderEffect;
         
         if (prevVocoderValue != vocoderValue)
         {
@@ -399,49 +408,56 @@ void AtomicAudioEngine::prepareBook()
 }
 
 
-void AtomicAudioEngine::initialiseParameters(ChangeListener* cl)
+void AtomicAudioEngine::initialiseParameters()
 {
     /* Bleed */
     
     float maxBleedAmount = 8;
-    paramBleed = new FloatParameter ( String("Bleed Amount"),
-                                                          NormalisableRange<float>(1.0f/maxBleedAmount, maxBleedAmount, 0.01, 1.0),
-                                                          1.0 );
+    paramBleed = new AudioParameterFloat(String("bleed"),
+                                         String("Bleed Amount"),
+                                         NormalisableRange<float>(1.0f/maxBleedAmount, maxBleedAmount, 0.01, 1.0),
+                                         1.0 );
     
-    parameters.add(paramBleed);
-    paramBleed->addChangeListener(cl);
+    addParameter(paramBleed);
     
     /* Atom limit */
     
-    atomLimit = new FloatParameter(String("Atom Playback Limit"), NormalisableRange<float>(10, 10000, 1, 1.0), 200) ;
+    atomLimit = new AudioParameterInt(String("limit" ),
+                                        String("Atom Playback Limit"),
+                                        10,
+                                        5000,
+                                        200) ;
     
-    parameters.add(atomLimit);
-    atomLimit->addChangeListener(cl);
-
+    addParameter(atomLimit);
     
     /* Max Scrubbing Speed */
     
-    maxScrubSpeed = new FloatParameter ( String("Max. Scrubbing Speed"),
-                                                NormalisableRange<float>(1, 10, 0.01, 1.0),
-                                                5.0 );
+    maxScrubSpeed = new AudioParameterFloat (String("speed"),
+                                             String("Max. Scrubbing Speed"),
+                                             NormalisableRange<float>(1, 10, 0.01, 1.0),
+                                             5.0 );
     
-    parameters.add(maxScrubSpeed);
-    maxScrubSpeed->addChangeListener(cl);
-
+    addParameter(maxScrubSpeed);
     
     /* Window Shape */
     
-    windowShape = new FloatParameter (String("Window Shape"), NormalisableRange<float>(0, 9, 1, 1.0), 9);
+    windowShape = new AudioParameterInt (String("window"),
+                                         String("Window Shape"),
+                                         0,
+                                         9,
+                                         9);
     
-    parameters.add(windowShape);
-    windowShape->addChangeListener(cl);
+    addParameter(windowShape);
 
     
     /* Vocoder */
     
-    vocoderEffect = new FloatParameter (String("Window Shape"), NormalisableRange<float>(0, 128, 1, 1.0), 0);
-    parameters.add(vocoderEffect);
-    vocoderEffect->addChangeListener(cl);
+    vocoderEffect = new AudioParameterInt (String("vocoder"),
+                                        String("Vocoder Effect"),
+                                        0,
+                                        128,
+                                        0);
+    addParameter(vocoderEffect);
     
     
 }

@@ -16,7 +16,7 @@
 #include "RealtimeBook.h"
 
 
-class WivigramComponent :public Component
+class WivigramComponent :public Component, public AsyncUpdater
 {
 public:
     WivigramComponent(const String& name) : Component(name), numAtoms(0)
@@ -25,7 +25,7 @@ public:
         setBufferedToImage(true);
     }
     
-    
+   
     void updateWivigram()
     {
     }
@@ -100,21 +100,23 @@ public:
         if (value != currentBleedValue)
         {
             currentBleedValue = value;
-
-                for (int i = 0; i < numAtoms; ++i)
-                {
-                    AtomComponent* ac = atomImages[i];
-                    ac->transformModifier = AffineTransform::scale(currentBleedValue, 1/currentBleedValue,
-                                                                   ac->centre.getX(), ac->centre.getY() );
-//
-//                    
-//                    
-                }
-//
-                        repaint();
+            triggerAsyncUpdate();
+            
         }
     }
     
+    void handleAsyncUpdate() override
+    {
+        for (int i = 0; i < numAtoms; ++i)
+        {
+            AtomComponent* ac = atomImages[i];
+            ac->transformModifier = AffineTransform::scale(currentBleedValue,
+                                                           1/currentBleedValue,
+                                                           ac->centre.getX(),
+                                                           ac->centre.getY() );
+        }
+        repaint();
+    }
 private:
     
     double wignerVille(double t, double f)

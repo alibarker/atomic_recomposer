@@ -14,7 +14,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
 #include "RealtimeBook.h"
-#include "Parameters.h"
 
 class AtomicAudioSource;
 
@@ -34,7 +33,7 @@ class AtomicAudioEngine :   public AudioProcessor,
 {
 public:
   
-    AtomicAudioEngine(ChangeListener* cl);
+    AtomicAudioEngine();
     
     ~AtomicAudioEngine();
 
@@ -94,14 +93,11 @@ public:
     
     // Parameters
     
-    float getParameter(int index) { return *parameters.getUnchecked(index); }
-    void setParameter(int index, float value) { *parameters[index] = value; }
-    
-    FloatParameter* paramBleed;
-    FloatParameter* atomLimit;
-    FloatParameter* maxScrubSpeed;
-    FloatParameter* windowShape;
-    FloatParameter* vocoderEffect;
+    AudioParameterFloat* paramBleed;
+    AudioParameterInt* atomLimit;
+    AudioParameterFloat* maxScrubSpeed;
+    AudioParameterInt* windowShape;
+    AudioParameterInt* vocoderEffect;
     //==============================================================================
     
     
@@ -144,8 +140,7 @@ private:
 
     void quantizeAtomFrequencies(int midiNumber);
     
-    OwnedArray<FloatParameter> parameters;
-    void initialiseParameters(ChangeListener* cl);
+    void initialiseParameters();
 
     void decomposition();
     

@@ -33,7 +33,8 @@ class MainContentComponent :    public AudioAppComponent,
                                 public ChangeListener,
                                 public Timer,
                                 public Slider::Listener,
-                                public ActionListener
+                                public ActionListener,
+                                public AudioProcessorListener
 {
 public:
     //==============================================================================
@@ -55,6 +56,18 @@ public:
     void setNewBook();
     void updateWivigramParametersAndRedraw();
 
+    void audioProcessorParameterChanged (AudioProcessor* processor,
+                                         int parameterIndex,
+                                         float newValue) override
+    {
+        if (parameterIndex == pBleedAmount)
+        {
+            wivigram->setBleed(*audioEngine->paramBleed);
+        }
+    }
+    
+    void audioProcessorChanged (AudioProcessor* processor) override {}
+    
     void checkStatus()
     {
         statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
@@ -84,7 +97,6 @@ public:
     Value getParameter(const Identifier& parameterId);
     void setParameter(const Identifier& parameterId, Value value);
     
-    void initialiseParameters();
 private:
     
     

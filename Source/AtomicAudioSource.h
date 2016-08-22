@@ -44,6 +44,9 @@ public:
     virtual void releaseResources() override {}
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
+    void setBleed(float value) { currentBleedValue = value; }
+    void setPlaybacklimit(int value) { playbackLimit = value; }
+    void setJumpAmount(int value) { jumpAmount = value; }
     
     // TODO: make these private!
     int targetPosition;
@@ -76,6 +79,10 @@ private:
     bool isCurrentlyReversing;
     
     float currentBleedValue;
+    int playbackLimit;
+    int jumpAmount; // used for limiting scrubbing speed
+    
+    
     float currentSampleRate;
     
     

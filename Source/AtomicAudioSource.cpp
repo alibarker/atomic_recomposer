@@ -41,7 +41,6 @@ void AtomicAudioSource::smoothScrubbing()
     {
         int currentPos = nextReadPosition;
         int nextPos = targetPosition;
-        int jumpAmount = expBufferSize * engine->getParameter(pMaxScrubSpeed);
         if (targetPosition > currentPos)
         {
             nextPos = currentPos + jumpAmount;
@@ -69,23 +68,22 @@ void AtomicAudioSource::smoothScrubbing()
 
 void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-    smoothScrubbing();
-    
+ 
+    // buffer preperation
     int numSamples = bufferToFill.numSamples;
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
-    bufferToFill.buffer->clear();
+//    bufferToFill.buffer->clear();
     
-    currentBleedValue = engine->getParameter(pBleedAmount);
-    int playbackLimit = engine->getParameter(pAtomLimit);
- 
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
     int numAtomsCurrentlyPlaying = 0;
     int numAtomsTooQuiet = 0;
     int numAtomsNotSupported = numAtoms;
     
-    float shortAtomLimit = 10.f/1000.0f * currentSampleRate;
+    float shortAtomLimit = 0.02 * currentSampleRate; // limit atom length to 20ms
 
+    smoothScrubbing();
+    
     for (int i = 0; i < numAtoms; ++i)
     {
         
@@ -229,7 +227,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
 
 double AtomicAudioSource::getScaledWindowValue(int atomLength, int pos)
 {
-//    int shape = engine->getParameter(pWindowShape);
     
     return engine->getWindowValue(atomLength, pos);
 }
