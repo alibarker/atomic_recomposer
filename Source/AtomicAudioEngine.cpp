@@ -85,8 +85,9 @@ void AtomicAudioEngine::processBlock(AudioSampleBuffer &buffer, MidiBuffer &midi
         atomicSource->setBleed(*paramBleed);
         atomicSource->setPlaybacklimit(*atomLimit);
         atomicSource->setJumpAmount(*maxScrubSpeed);
+        atomicSource->setSpeed(*paramSpeed);
+        atomicSource->setPitchShift(*paramPitchShift);
 
-        
         // Check for underruns
         if ( (timeDifference.inSeconds() - numSamples / (float) fs) >  0.004)
         {
@@ -468,6 +469,17 @@ void AtomicAudioEngine::initialiseParameters()
                                           NormalisableRange<float>(1/maxSpeed, maxSpeed, 0.01, 1.0),
                                           1.0);
     addParameter(paramSpeed);
-        
+    
+    /* Pitch Shift */
+    
+    float maxShift = 16; // 4 octaves
+    
+    paramPitchShift = new AudioParameterFloat (String("speed"),
+                                          String("Playback Speed"),
+                                          NormalisableRange<float>(1/maxShift, maxShift, 0.01, 1.0),
+                                          1.0);
+    addParameter(paramPitchShift);
+
+    
 }
 

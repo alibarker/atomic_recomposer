@@ -51,7 +51,7 @@ public:
         switch (interpolation) {
                 
             case noInterpolation:
-                output = *wavetable.getReadPointer(0, intPhase); // was at x916 for 10000 atoms
+                output = *wavetable.getReadPointer(0, intPhase);
                 break;
                 
             case linearInterpolation:

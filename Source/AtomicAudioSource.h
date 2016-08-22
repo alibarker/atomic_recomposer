@@ -48,7 +48,8 @@ public:
     void setPlaybacklimit(int value) { playbackLimit = value; }
     void setJumpAmount(int value) { jumpAmount = value; }
     void setSpeed(float value) { currentSpeed = value; }
-    
+    void setPitchShift(float value) { currentPitchShift = value; }
+
     // TODO: make these private!
     int targetPosition;
     int expBufferSize;
@@ -83,6 +84,7 @@ private:
     int playbackLimit;
     int jumpAmount; // used for limiting scrubbing speed
     float currentSpeed;
+    float currentPitchShift;
     
     float currentSampleRate;
     

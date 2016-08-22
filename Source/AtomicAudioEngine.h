@@ -100,6 +100,8 @@ public:
     AudioParameterInt* windowShape;
     AudioParameterInt* vocoderEffect;
     AudioParameterFloat* paramSpeed;
+    AudioParameterFloat* paramPitchShift;
+
     //==============================================================================
     
     

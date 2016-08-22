@@ -29,18 +29,21 @@ private:
     ScopedPointer<Slider> sliderWindowShape;
     ScopedPointer<Slider> sliderVocoderValue;
     ScopedPointer<Slider> sliderSpeed;
+    ScopedPointer<Slider> sliderPitch;
 
     AudioParameterFloat* paramBleed;
     AudioParameterInt* paramAtomLimit;
     AudioParameterInt* paramWindowShape;
     AudioParameterInt* paramVocoderEffect;
     AudioParameterFloat* paramSpeed;
+    AudioParameterFloat* paramPitch;
 
     ScopedPointer<Label> labelBleed;
     ScopedPointer<Label> labelAtomsLimit;
     ScopedPointer<Label> labelWindowShape;
     ScopedPointer<Label> labelVocoderValue;
     ScopedPointer<Label> labelSpeed;
+    ScopedPointer<Label> labelPitch;
 
     
     AtomicAudioEngine* engine;

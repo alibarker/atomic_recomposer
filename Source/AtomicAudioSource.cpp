@@ -146,18 +146,18 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                     {
                         double value;
                        
-                        int pos;
+                        int posInAtom;
                         
                         if (isCurrentlyReversing)
-                            pos = nextReadPosition - atomStart - n;
+                            posInAtom = nextReadPosition - atomStart - n * currentSpeed;
                         else
-                            pos = nextReadPosition - atomStart + n;
+                            posInAtom = nextReadPosition - atomStart + n * currentSpeed;
 
                         
-                        if (pos < 0 || pos >= atomLength)
+                        if (posInAtom < 0 || posInAtom >= atomLength)
                             value = 0.0;
                         else
-                            value = getScaledWindowValue( atomLength,  pos);
+                            value = getScaledWindowValue( atomLength,  posInAtom);
                         
                         window[n] = value;
                     }
@@ -170,21 +170,32 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                 
                 for (int ch = 0; ch < numChans; ch++)
                 {
-                    for (int n = start; n < end; ++n)
-                    {
-                        double amp = atom->amp[ch];
+                    float currentPhaseInc = scrubAtom->phaseInc * currentPitchShift;
+                    
+                    double amp = atom->amp[ch];
+                    double output;
 
-                        float phase = scrubAtom->currentPhase[ch] + scrubAtom->phaseInc;
-                        
-                        if (phase >= 2 * M_PI)
-                            phase -= 2 * M_PI;
-                        
-                        double output = osc->getSample(phase) * window[n] * amp;
-                        
-                        bufferToFill.buffer->addSample(ch, n, output);
-                        
-                        
-                        scrubAtom->currentPhase[ch] = phase;
+                    if (currentPhaseInc >= M_PI)
+                    {
+                        output = 0.0;
+                    }
+                    else
+                    {
+                        for (int n = start; n < end; ++n)
+                        {
+                            
+                            float phase = scrubAtom->currentPhase[ch] + currentPhaseInc;
+                            
+                            if (phase >= 2 * M_PI)
+                                phase -= 2 * M_PI;
+                            
+                            output = osc->getSample(phase) * window[n] * amp;
+                            
+                            bufferToFill.buffer->addSample(ch, n, output);
+                            
+                            
+                            scrubAtom->currentPhase[ch] = phase;
+                        }
                     }
                 }
                 
@@ -209,11 +220,13 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     // update position as necessary
 
     prevReadPosition = nextReadPosition;
+    
+    int sampleInc = bufferToFill.numSamples * currentSpeed;
 
     if (!isCurrentlyScrubbing && !isCurrentlyReversing)
-        nextReadPosition += bufferToFill.numSamples;
+        nextReadPosition += sampleInc;
     else if(!isCurrentlyScrubbing && isCurrentlyReversing)
-        nextReadPosition -= bufferToFill.numSamples;
+        nextReadPosition -= sampleInc;
     
     
     if (nextReadPosition >= getTotalLength() && isCurrentlyLooping)

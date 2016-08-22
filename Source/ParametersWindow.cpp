@@ -101,7 +101,7 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     paramSpeed = aae->paramSpeed;
     
     sliderSpeed = new Slider("Playback Speed");
-    sliderSpeed->setRange(paramSpeed->range.start, paramSpeed->range.end, 1);
+    sliderSpeed->setRange(paramSpeed->range.start, paramSpeed->range.end, 0);
     sliderSpeed->setValue(*paramSpeed);
     sliderSpeed->setSkewFactorFromMidPoint(1.0);
     sliderSpeed->addListener(this);
@@ -115,6 +115,25 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
     labelSpeed->setBounds(sliderWidth + 2, 4 * (1 + sliderHeight), labelWidth, sliderHeight);
     addAndMakeVisible(labelSpeed);
 
+    /* Pitch Shift */
+    
+    paramPitch = aae->paramPitchShift;
+    
+    sliderPitch = new Slider("Playback Speed");
+    sliderPitch->setRange(paramPitch->range.start, paramPitch->range.end, 0);
+    sliderPitch->setValue(*paramPitch);
+    sliderPitch->setSkewFactorFromMidPoint(1.0);
+    sliderPitch->addListener(this);
+    
+    sliderPitch->setBounds(1, 5 * (1 + sliderHeight), sliderWidth, sliderHeight);
+    sliderPitch->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
+    sliderPitch->setSliderStyle(Slider::LinearHorizontal);
+    addAndMakeVisible(sliderPitch);
+    
+    labelPitch = new Label("pitch", "Pitch Shift");
+    labelPitch->setBounds(sliderWidth + 2, 5 * (1 + sliderHeight), labelWidth, sliderHeight);
+    addAndMakeVisible(labelPitch);
+    
 }
 
 void ParametersWindow::sliderValueChanged(Slider *slider)
@@ -134,5 +153,13 @@ void ParametersWindow::sliderValueChanged(Slider *slider)
     else if (slider == sliderVocoderValue)
     {
         *paramVocoderEffect = sliderVocoderValue->getValue();
+    }
+    else if (slider == sliderSpeed)
+    {
+        *paramSpeed = sliderSpeed->getValue();
+    }
+    else if (slider == sliderPitch)
+    {
+        *paramPitch = sliderPitch->getValue();
     }
 }

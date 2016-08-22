@@ -63,19 +63,6 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible(labelSelectSignal);
     labelSelectSignal->setBounds(600, 26, 49, 25);
     
-    /* Bleed */
-    
-//    FloatParameter* bleedParam = dynamic_cast<FloatParameter*>(audioEngine->getParameter(0));
-//    
-//    sliderBleed = new Slider("Bleed Amount");
-//    sliderBleed->setBounds(160, 35, 340, 20);
-//    addAndMakeVisible(sliderBleed);
-//    sliderBleed->setSliderStyle(Slider::SliderStyle::LinearHorizontal);
-//    sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, 50, 20);
-//    sliderBleed->addListener(this);
-//    sliderBleed->setRange(bleedParam->range.start, bleedParam->range.end);
-//    sliderBleed->setValue(*bleedParam);
-    
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
     addAndMakeVisible (button_decomp);
@@ -168,18 +155,12 @@ MainContentComponent::MainContentComponent()
     parametersWindow->setVisible(true);
     parametersWindow->setContentOwned(paramComponent, false);
     
-    /* Vocoder effect */
-    
-    
-    
     
     /* Misc */
     
-//    addParameters();
     startTimerHz(30);
     underrunCounter = -1;
     changeState(Inactive);
-//    initialiseParameters();
 
 }
 
