@@ -13,55 +13,67 @@
 //==============================================================================
 MainContentComponent::MainContentComponent()
 {
-    setSize (1000, 650);
-    
-    int timelineWidth = getWidth() - 1;
-    int timelineHeight = getHeight() - 101;
 
-    File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
-    File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
-
+    // set window size
+    setSize (900, 650);
     
-    
+    // create engine
     audioEngine = new AtomicAudioEngine();
     audioEngine->addChangeListener(this);
     audioEngine->transportSource.addChangeListener(this);
     audioEngine->addActionListener(this);
     audioEngine->addListener(this);
     
-    
     setAudioChannels (0, 2);
 
+    /* Dictionary/Signal Selector */
     
+    int buttonWidth = 50;
+    int height = 25;
+    int textWidth = 300;
+    int labelWidth = 150;
+    
+    // Dictionary
+    
+    File defaultDict("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/dictGabor_original.xml");
+
     textEditorDictionary = new TextEditor("Dictionary");
-    textEditorDictionary->setBounds(649, 1, 300, 25);
+    textEditorDictionary->setBounds(getWidth() - buttonWidth - 1 - textWidth - 1, 1, textWidth, height);
     addAndMakeVisible(textEditorDictionary);
     textEditorDictionary->setText(defaultDict.getFullPathName());
     
     buttonSelectDictionary = new TextButton("SelectDict");
     addAndMakeVisible(buttonSelectDictionary);
-    buttonSelectDictionary->setBounds(949, 1, 50, 25);
+    buttonSelectDictionary->setBounds(getWidth() - buttonWidth - 1, 1, buttonWidth, height);
     buttonSelectDictionary->setButtonText("...");
     buttonSelectDictionary->addListener(this);
 
     labelSelectDictionary = new Label("Dictionary Label", "Dictionary:");
     addAndMakeVisible(labelSelectDictionary);
-    labelSelectDictionary->setBounds(574, 1, 75, 25);
+    labelSelectDictionary->setBounds(getWidth() - buttonWidth - 1 - textWidth - 1 - labelWidth - 1, 1, labelWidth, height);
+    labelSelectDictionary->setJustificationType(Justification::right);
+    
+    // Signal
+    
+    File defaultSignal("/Users/alibarker89/Dropbox/QMUL/Final Project/Code/mpdgui/Data/glock2.wav");
     
     textEditorSignal = new TextEditor("Signal");
-    textEditorSignal->setBounds(649, 27, 300, 25);
+    textEditorSignal->setBounds(getWidth() - buttonWidth - 1 - textWidth - 1, 2 + height, textWidth, height);
     addAndMakeVisible(textEditorSignal);
     textEditorSignal->setText(defaultSignal.getFullPathName());
 
     buttonSelectSignal = new TextButton("SelectSignal");
     addAndMakeVisible(buttonSelectSignal);
-    buttonSelectSignal->setBounds(949, 26, 50, 25);
+    buttonSelectSignal->setBounds(getWidth() - buttonWidth - 1, 2 + height, buttonWidth, height);
     buttonSelectSignal->setButtonText("...");
     buttonSelectSignal->addListener(this);
 
     labelSelectSignal = new Label("Signal Label", "Signal:");
     addAndMakeVisible(labelSelectSignal);
-    labelSelectSignal->setBounds(600, 26, 49, 25);
+    labelSelectSignal->setBounds(getWidth() - buttonWidth - 1 - textWidth - 1 - labelWidth - 1, 2 + height, labelWidth, height);
+    labelSelectSignal->setJustificationType(Justification::right);
+
+    /* Decomp */
     
     button_decomp = new TextButton("Decompose");
     button_decomp->setBounds (1, 1, 144, 32);
@@ -80,6 +92,9 @@ MainContentComponent::MainContentComponent()
     addAndMakeVisible (text_editor_num_iterations);
     
     /* Timeline/Wivigram Viewport*/
+    
+    int timelineWidth = getWidth() - 1;
+    int timelineHeight = getHeight() - 101;
     
     wivigram = new WivigramComponent("Wivigram");
     wivigram->setInterceptsMouseClicks(false, false);
@@ -141,7 +156,7 @@ MainContentComponent::MainContentComponent()
     /* Parameters Window */
     
     paramComponent = new ParametersWindow(audioEngine);
-    Rectangle<int> area (0, 0, 350, 500);
+    Rectangle<int> area (0, 0, paramComponent->getWidth(), paramComponent->getHeight());
     
     parametersWindow = new DocumentWindow("Parameters Window", Colour(Colours::whitesmoke), 0);
     
@@ -152,14 +167,13 @@ MainContentComponent::MainContentComponent()
     Rectangle<int> result (placement.appliedTo (area, Desktop::getInstance().getDisplays()
                                                 .getMainDisplay().userArea.reduced (20)));
     parametersWindow->setBounds(result);
+    parametersWindow->setContentOwned(paramComponent, true);
     parametersWindow->setVisible(true);
-    parametersWindow->setContentOwned(paramComponent, false);
-    
-    
+
     /* Misc */
     
-    startTimerHz(30);
-    underrunCounter = -1;
+    startTimerHz(30); // set timer which updates cursor position and underrun status
+    underrunCounter = -1; // set counter for underrun status to invalid
     changeState(Inactive);
 
 }
@@ -168,7 +182,7 @@ MainContentComponent::~MainContentComponent()
 {
     audioEngine->releaseResources();
     shutdownAudio();
-    timeline.release();
+    timeline.release(); // release scoped pointer to stop it from being deleted twice
 }
 
 void MainContentComponent::paint (Graphics& g)
@@ -192,11 +206,11 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == buttonSelectDictionary)
     {
-        
+        // create chooser
         FileChooser chooser ("Select a MPTK Dictionary to use...",
                              File(textEditorDictionary->getText()),
                              "*.xml");
-        
+        // show choser and set text when chosen
         if (chooser.browseForFileToOpen())
         {
             File file(chooser.getResult());
@@ -205,11 +219,11 @@ void MainContentComponent::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == buttonSelectSignal)
     {
-        
+        // create chooser
         FileChooser chooser ("Select a signal to use...",
                              File(textEditorSignal->getText()),
                              "*.wav");
-        
+        // show choser and set text when chosen
         if (chooser.browseForFileToOpen())
         {
             File file(chooser.getResult());
@@ -242,6 +256,7 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (source == &(audioEngine->transportSource))
     {
+        // handle transport source changing status
         if (audioEngine->isPlaying() && state != Scrubbing)
             changeState (Playing);
         else if (state == Stopping || state == Playing)
@@ -251,7 +266,9 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
     }
     else if (source == audioEngine)
     {
-        if (audioEngine->isDecomposing()) {
+        // handle audio engine changing status
+        if (audioEngine->isDecomposing())
+        {
             wivigram->clearBook();
         }
         else
@@ -264,8 +281,11 @@ void MainContentComponent::changeListenerCallback(ChangeBroadcaster* source)
 
 void MainContentComponent::timerCallback()
 {
+    // get transport position and set the cursor to it
     float newPos = audioEngine->getTransportPosition();
     timeline->setCursorPosition( newPos);
+    
+    // if an underrun is being displayed, count and turn of after 2 seconds
     if (underrunCounter >= 0)
     {
         underrunCounter++;
@@ -281,7 +301,10 @@ void MainContentComponent::timerCallback()
 
 void MainContentComponent::actionListenerCallback (const String& message)
 {
+    // set status message
     statusLabel->setText(message, dontSendNotification);
+    
+    // if it is an underrun display it seperately and start timer
     if (message.equalsIgnoreCase("UNDERRUN") )
     {
         underrunStatus->setText("UNDERRUN", dontSendNotification);
@@ -289,24 +312,13 @@ void MainContentComponent::actionListenerCallback (const String& message)
     }
 }
 
-
 void MainContentComponent::mouseDrag(const MouseEvent &event)
 {
+    // send mouse drag messages to audio engine
     if (event.originalComponent == timeline)
     {
         float scrubPos = (float) event.x / (float) timeline->getWidth();
         audioEngine->setTransportPosition(scrubPos, !event.mouseWasClicked());
-    }
-}
-
-
-void MainContentComponent::sliderValueChanged (Slider* slider)
-{
-    if (slider == sliderBleed)
-    {
-        float value = sliderBleed->getValue();
-        audioEngine->setParameter(pBleedAmount,  value);
-        wivigram->setBleed(value);
     }
 }
 
@@ -456,4 +468,25 @@ void MainContentComponent::changeState (TransportState newState)
                 break;
         }
     }
+}
+
+void MainContentComponent::audioProcessorParameterChanged (AudioProcessor* processor,
+                                                                 int parameterIndex,
+                                                                 float newValue)
+{
+    if (parameterIndex == pBleedAmount)
+    {
+        wivigram->setBleed(*audioEngine->paramBleed);
+    }
+}
+
+void MainContentComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+{
+    audioEngine->prepareToPlay(sampleRate, samplesPerBlockExpected);
+}
+
+void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+{
+    MidiBuffer emptyBuffer;
+    audioEngine->processBlock(*bufferToFill.buffer, emptyBuffer);
 }

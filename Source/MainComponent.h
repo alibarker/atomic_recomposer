@@ -17,22 +17,19 @@
 #include "WivigramComponent.h"
 #include "RealtimeBook.h"
 #include "ParametersWindow.h"
+#include "AtomicTimeLineComponent.h"
 
-//#include "harmonic_atom_plugin.h"
+// forces MPTK to use latest version of MPTK
 #define HAVE_FFTW3 1
 
 
 //==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+
+
 class MainContentComponent :    public AudioAppComponent,
                                 public ButtonListener,
-//                                public Component,
                                 public ChangeListener,
                                 public Timer,
-                                public Slider::Listener,
                                 public ActionListener,
                                 public AudioProcessorListener
 {
@@ -44,65 +41,36 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     
-    void buttonClicked (Button* buttonThatWasClicked) override;
+    // various async call back methods
     void changeListenerCallback(ChangeBroadcaster* source) override;
     void timerCallback() override;
     void actionListenerCallback (const String& message) override;
 
+    void buttonClicked (Button* buttonThatWasClicked) override;
     void mouseDrag(const MouseEvent& event) override;
-
-    void sliderValueChanged (Slider* slider) override;
 
     void setNewBook();
     void updateWivigramParametersAndRedraw();
 
+    // used to update GUI when parameters change
     void audioProcessorParameterChanged (AudioProcessor* processor,
                                          int parameterIndex,
-                                         float newValue) override
-    {
-        if (parameterIndex == pBleedAmount)
-        {
-            wivigram->setBleed(*audioEngine->paramBleed);
-        }
-    }
+                                         float newValue) override;
     
     void audioProcessorChanged (AudioProcessor* processor) override {}
     
-    void checkStatus()
-    {
-        statusLabel->setText(audioEngine->getStatus(), dontSendNotification);
-    }
+    void checkStatus() { statusLabel->setText(audioEngine->getStatus(), dontSendNotification); }
     
+    // audio call back methods
     virtual void prepareToPlay (int samplesPerBlockExpected,
-                                double sampleRate) override
-    {
-        audioEngine->prepareToPlay(sampleRate, samplesPerBlockExpected);
-    }
+                                double sampleRate) override;
     
-    
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
-    {
-        MidiBuffer emptyBuffer;
-        audioEngine->processBlock(*bufferToFill.buffer, emptyBuffer);
-    }
-    
-    
-    virtual void releaseResources() override
-    {
-        audioEngine->releaseResources();
-    }
-  
+    virtual void releaseResources() override { audioEngine->releaseResources(); }
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
 
-    
-    Value getParameter(const Identifier& parameterId);
-    void setParameter(const Identifier& parameterId, Value value);
     
 private:
     
-    
-    
-    void addParameters();
-
     void decompButtonClicked();
     void playButtonClicked();
     void stopButtonClicked();
@@ -126,6 +94,7 @@ private:
     TransportState state;
     void changeState (TransportState newState);
 
+    // UI Components
     ScopedPointer<TextButton> button_decomp;
     ScopedPointer<TextEditor> text_editor_num_iterations;
     ScopedPointer<Label> label_num_iterations;
@@ -154,15 +123,9 @@ private:
     ScopedPointer<Label> underrunStatus;
     ScopedPointer<Label> statusLabel;
     int underrunCounter;
-
-    ScopedPointer<Slider> sliderBleed;
     
+    // The audio engine
     ScopedPointer<AtomicAudioEngine> audioEngine;
-    
-    
-    //==============================================================================
-    /* Parameters */
-    
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

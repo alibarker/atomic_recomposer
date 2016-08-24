@@ -38,17 +38,20 @@ public:
     
     ~AtomicAudioEngine();
 
+    // transport interface functions
     void startPlaying() { transportSource.start(); }
     void stopPlaying() { transportSource.stop(); }
-    
     bool isPlaying() {return transportSource.isPlaying(); }
     
     void setLooping(bool isLooping, int startSample, int endSample);
     void setReverse(bool shouldReverse);
-    
     void setScrubbing(bool status);
     bool isCurrentlyScrubbing();
 
+    void setTransportPosition(float posAsPercentage, bool isCurrentlyDragging);
+    float getTransportPosition();
+    
+    // audio interface functions
     void prepareToPlay ( double sampleRate, int samplesPerBlockExpected) override
     {
         transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
@@ -57,53 +60,26 @@ public:
         lastBufferTime = Time::getCurrentTime();
     }
     
-    
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
-    
 
     virtual void releaseResources() override {}
-    AudioTransportSource transportSource;
     
-    void setTransportPosition(float posAsPercentage, bool isCurrentlyDragging);
-    float getTransportPosition();
-    
-    double getWindowValue(int atomLength, int sampleInAtom);
-
-    bool getIsPlayingLeftToRight() {return isPlayingLeftRight;}
-    
-    void setStatus(String val);
-    String getStatus()
-    {
-        ScopedReadLock srl(statusLock);
-        return status;
-    }
+    // decomposition functions
     
     void run() override;
     void triggerDecomposition(File dictionary, File signal, int numIterations);
     bool isDecomposing() {return currentlyDecomposing;}
-
     void prepareBook();
-  
-    RealtimeBook rtBook;
-    
-    ReadWriteLock bookLock;
+    void decomposition();
 
-    ScopedPointer<MP_TF_Map_c> map;
+    // misc
+    double getWindowValue(int atomLength, int sampleInAtom);
 
-    void updateBleed();
-    
-    // Parameters
-    
-    AudioParameterFloat* paramBleed;
-    AudioParameterInt* atomLimit;
-    AudioParameterFloat* maxScrubSpeed;
-    AudioParameterInt* windowShape;
-    AudioParameterInt* vocoderEffect;
-    AudioParameterFloat* paramSpeed;
-    AudioParameterFloat* paramPitchShift;
+    void setStatus(String val);
+    String getStatus() { ScopedReadLock srl(statusLock); return status; }
 
     //==============================================================================
-    
+    // audioProcessor functions
     
     const String getName() const override {return "Atomic Audio Decomposer"; }
     
@@ -127,51 +103,61 @@ public:
 
     //==============================================================================
     
+    // decomposition information
+    
     File dictionary;
     File signal;
     int numIterations;
-
     
+    RealtimeBook rtBook;
+    ReadWriteLock bookLock;
+
+    // Parameters
+    
+    AudioParameterFloat* paramBleed;
+    AudioParameterInt* atomLimit;
+    AudioParameterFloat* maxScrubSpeed;
+    AudioParameterInt* windowShape;
+    AudioParameterInt* vocoderEffect;
+    AudioParameterFloat* paramSpeed;
+    AudioParameterFloat* paramPitchShift;
+    
+    // Misc Objects
+    
+    AudioTransportSource transportSource;
+    ScopedPointer<AtomicAudioSource> atomicSource;
+
 private:
-    
-    ScopedPointer<FileLogger> logger;
-
-    
-    void makeOtherWindows(int windowLength);
-    OwnedArray<AudioBuffer<double>> windowBuffers;
-    AudioBuffer<double>* currentWindow;
-    int windowLength;
-
-    void quantizeAtomFrequencies(int midiNumber);
-    
     void initialiseParameters();
 
-    void decomposition();
-    
-    int scrubSmoothAmount;
-    int prevVocoderValue;
-    bool isPlayingLeftRight;
+    void quantizeAtomFrequencies(int midiNumber);
 
+    // array of buffers containing the window shapes
+    OwnedArray<AudioBuffer<double>> windowBuffers;
+    int windowLength;
+    void makeOtherWindows(int windowLength);
+
+    // pointer to current window
+    AudioBuffer<double>* currentWindow;
+
+    // used for generating atom playback info in debug mode
+    ScopedPointer<FileLogger> logger;
+    
+    // variables used for calculating underruns
+    uint64 sampleCount;
+    float fs;
+    Time lastBufferTime;
+    int expBufferSize;
+    
+    // misc
+    int prevVocoderValue;
+    
     bool isScrubbing = false;
     
     bool currentlyDecomposing;
     
     String status;
     ReadWriteLock statusLock;
-    
-    float bleedValue;
-    float prevBleedValue;
-    int expBufferSize;
-    bool readyForPlayback;
-    
-    uint64 sampleCount;
-    float fs;
-    Time lastBufferTime;
-    
-    ScopedPointer<AtomicAudioSource> atomicSource;
-
-    ChangeListener* paramListener;
-    
 };
 
 

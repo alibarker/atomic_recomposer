@@ -11,28 +11,34 @@
 #include "ParametersWindow.h"
 
 
-ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
-    int sliderWidth = 230;
+ParametersWindow::ParametersWindow(AtomicAudioEngine* aae)
+{
+    setBounds(0, 0, 300, 500); // set size of window
+    
+    // set size of components
+    int sliderWidth = 220;
     int sliderHeight = 30;
     int textBoxSize = 50;
-    int labelWidth = 100;
+    int labelWidth = 80;
     
   
     /* Bleed */
 
-    paramBleed = aae->paramBleed;
+    paramBleed = aae->paramBleed; // point local pointer to glocal parameter
     
-    sliderBleed = new Slider("Bleed Amount");
-    sliderBleed->setRange(paramBleed->range.start, paramBleed->range.end);
+    sliderBleed = new Slider("Bleed Amount"); // create component
+    sliderBleed->setRange(paramBleed->range.start, paramBleed->range.end); // set range to that of the parameter
     sliderBleed->setSkewFactorFromMidPoint(1.0);
-    sliderBleed->setValue(*paramBleed);
-    sliderBleed->addListener(this);
+    sliderBleed->setValue(*paramBleed); // set value to to that of parameter
+    sliderBleed->addListener(this); // set slider listener
 
+    // set appearance and make visible
     sliderBleed->setTextBoxStyle(Slider::TextBoxRight, false, textBoxSize, sliderHeight);
     sliderBleed->setSliderStyle(Slider::LinearHorizontal);
     sliderBleed->setBounds(1, 1, sliderWidth, sliderHeight);
     addAndMakeVisible(sliderBleed);
 
+    // create label
     labelBleed = new Label("Bleed", "Bleed");
     addAndMakeVisible(labelBleed);
     labelBleed->setBounds(sliderWidth + 2, 1, labelWidth, sliderHeight);
@@ -138,6 +144,8 @@ ParametersWindow::ParametersWindow(AtomicAudioEngine* aae) {
 
 void ParametersWindow::sliderValueChanged(Slider *slider)
 {
+    // set each parameter when a slider is changed
+    
     if (slider == sliderBleed)
     {
         *paramBleed = sliderBleed->getValue();

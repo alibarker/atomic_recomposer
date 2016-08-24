@@ -66,9 +66,16 @@ public:
                                         true)
         {
             setContentOwned (new MainContentComponent(), true);
-
-            centreWithSize (getWidth(), getHeight());
             
+            Rectangle<int> area (0, 0, getWidth(), getHeight());
+            
+            RectanglePlacement placement (RectanglePlacement::xLeft
+                                          | RectanglePlacement::yTop
+                                          | RectanglePlacement::doNotResize);
+            
+            Rectangle<int> result (placement.appliedTo (area, Desktop::getInstance().getDisplays()
+                                                        .getMainDisplay().userArea.reduced (20)));
+            setBounds(result);
             setVisible (true);
         }
 

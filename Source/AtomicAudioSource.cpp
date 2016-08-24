@@ -14,6 +14,7 @@
 AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
 {
     osc = new WavetableSinOscillator(pow(2, 15));
+    
     isCurrentlyScrubbing = false;
     isCurrentlyRunning = false;
     isCurrentlyLooping = false;
@@ -21,7 +22,6 @@ AtomicAudioSource::AtomicAudioSource(AtomicAudioEngine* aae) : engine(aae)
     
     prevReadPosition = 0;
     nextReadPosition = 0;
-    
     
     currentVocoderValue = 0;
 }
@@ -41,6 +41,9 @@ void AtomicAudioSource::smoothScrubbing()
     {
         int currentPos = nextReadPosition;
         int nextPos = targetPosition;
+        
+        // if moving forward increment by jump amount
+        // and check whether it is past the target
         if (targetPosition > currentPos)
         {
             nextPos = currentPos + jumpAmount;
@@ -50,6 +53,7 @@ void AtomicAudioSource::smoothScrubbing()
                 targetPosition = -1;
             }
         }
+        // do the opposite for reverse
         else if (targetPosition <= currentPos)
         {
             nextPos = currentPos - jumpAmount;
@@ -72,7 +76,6 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     // buffer preperation
     int numSamples = bufferToFill.numSamples;
     int numChans = min((int) bufferToFill.buffer->getNumChannels(), (int) engine->rtBook.book->numChans);
-//    bufferToFill.buffer->clear();
     
     // current atom status info
     int numAtoms = engine->rtBook.realtimeAtoms.size();
@@ -86,7 +89,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
     
     for (int i = 0; i < numAtoms; ++i)
     {
-        
+        // get current atom details
         RealtimeAtom* scrubAtom = engine->rtBook.realtimeAtoms.getUnchecked(i);
         MP_Atom_c* atom = scrubAtom->atom;
         
@@ -139,6 +142,7 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                             window[n] = currentWindowAmp;
                         }
                     }
+                    
                 }
                 else // not scrubbing
                 {
@@ -175,11 +179,8 @@ void AtomicAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& bufferT
                     double amp = atom->amp[ch];
                     double output;
 
-                    if (currentPhaseInc >= M_PI)
-                    {
-                        output = 0.0;
-                    }
-                    else
+                    
+                    if (currentPhaseInc < M_PI)
                     {
                         for (int n = start; n < end; ++n)
                         {

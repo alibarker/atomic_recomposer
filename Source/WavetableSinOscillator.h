@@ -13,22 +13,24 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+// class that efficiently retuns
+
 static const double two_pi = 2 * M_PI;
 static const double inv_two_pi = 1 / (2 * M_PI);
 
 class WavetableSinOscillator
 {
 public:
+    // default constructor which creates a wavetable size of 4096
     WavetableSinOscillator() : WavetableSinOscillator(4096) {}
     
+    // creates the wavetable
     WavetableSinOscillator(const int wavetableSize)
     {
         size = wavetableSize;
-        
         sizeOver2Pi = size * inv_two_pi;
-        
         wavetable.setSize(1, wavetableSize);
-        
+
         for (int i = 0; i < wavetableSize; ++i)
         {
             float phase = two_pi * i / (float) wavetableSize;
@@ -43,13 +45,15 @@ public:
     
     float getSample(float phase)
     {
+        float output;
+
+        // calculate pos in wavetable
         float samplePos = phase * sizeOver2Pi;
         
         int intPhase = floor(samplePos);
-        float output;
         
-        switch (interpolation) {
-                
+        switch (interpolation)
+        {
             case noInterpolation:
                 output = *wavetable.getReadPointer(0, intPhase);
                 break;

@@ -38,24 +38,26 @@ public:
 
     void setReversing(bool shouldReverse) { isCurrentlyReversing = shouldReverse; }
     
+    // audioSource functions
     virtual void prepareToPlay (int samplesPerBlockExpected,
                                 double sampleRate) override;
 
     virtual void releaseResources() override {}
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
+    // parameter functions
     void setBleed(float value) { currentBleedValue = value; }
     void setPlaybacklimit(int value) { playbackLimit = value; }
     void setJumpAmount(int value) { jumpAmount = value; }
     void setSpeed(float value) { currentSpeed = value; }
     void setPitchShift(float value) { currentPitchShift = value; }
 
-    // TODO: make these private!
     int targetPosition;
     int expBufferSize;
 
     ScopedPointer<WavetableSinOscillator> osc;
     
+    // current playback info
     int currentlyPlaying;
     int currentlyTooQuiet;
     int currentlyNotSupported;
@@ -68,28 +70,26 @@ private:
     ScopedPointer<MP_Real_t> tempBuffer;
     double getWindowValues(int atomLength, int startSample);
     
-    
-    
     AtomicAudioEngine* engine;
     
     int64 prevReadPosition;
     int64 nextReadPosition;
     
+    // transport status
     bool isCurrentlyScrubbing;
     bool isCurrentlyRunning;
     bool isCurrentlyLooping;
     bool isCurrentlyReversing;
     
+    // parameter status
     float currentBleedValue;
     int playbackLimit;
     int jumpAmount; // used for limiting scrubbing speed
     float currentSpeed;
     float currentPitchShift;
-    
-    float currentSampleRate;
-    
-    
     int currentVocoderValue;
+
+    float currentSampleRate;
     
 };
 

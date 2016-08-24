@@ -14,6 +14,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mptk.h"
 
+// Sttucts that contain the information needed for realtime playback
 
 struct RealtimeAtom
 {
@@ -21,8 +22,6 @@ struct RealtimeAtom
     double phaseInc;
     double originalPhaseInc;
     MP_Atom_c* atom;
-//    double ratio;
-//    MP_Support_t originalSupport;
 };
 
 struct RealtimeBook
